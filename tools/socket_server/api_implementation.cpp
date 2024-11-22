@@ -4,6 +4,8 @@
 #include "rapidjson/writer.h"
 #include "rapidjson/stringbuffer.h"
 
+#include "fmt/format.h"
+#include "fmt/ranges.h"
 #include "binder/binder.h"
 #include "common/bustub_instance.h"
 #include "common/exception.h"
@@ -75,9 +77,8 @@ auto DispatchRequest(const std::string &request) -> std::string {
             for (const auto &table : writer.tables_) {
                 sql_result += table;
             }
-            //sql_result = std::move(writer.ss_.str());
         } catch (bustub::Exception &ex) {
-            sql_result = ex.what();
+            return fmt::format(R"({{ "err_msg": "{}" }})", ex.what());
         }
 
         resp_data.AddMember(
