@@ -24,6 +24,23 @@
 // type=1, server->client
 #define OPTIONS_TYPE_MASK 0x01  
 
+std::unique_ptr<bustub::BustubInstance> kBusbubInstance = nullptr;
+
+void BustubInit() {
+    std::cout << "Initialize BusTub..." << std::endl;
+    auto bustub = std::make_unique<bustub::BustubInstance>("test.db");
+    bustub->GenerateMockTable();
+
+    if (bustub->buffer_pool_manager_ != nullptr) {
+        bustub->GenerateTestTable();
+    }
+
+    kBusbubInstance = std::move(bustub);
+
+    std::cout << "BusTub Initialized!" << std::endl;
+
+}
+
 auto PackDatagram(const std::string &payload) -> std::vector<uint8_t> {
     uint32_t payload_length = payload.length();
     std::vector<uint8_t> datagram(PROTOCOL_HEADER_SIZE + payload_length);
