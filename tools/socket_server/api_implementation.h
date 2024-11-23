@@ -18,25 +18,25 @@ extern std::unique_ptr<bustub::BustubInstance> kBusbubInstance;
 
 namespace myapi {
 
-bool SubmitSqlCommand(
-    rapidjson::Value &req_data, rapidjson::Value &resp_data, std::string &err_msg,
-    rapidjson::MemoryPoolAllocator<rapidjson::CrtAllocator> &resp_allocator,
-    bustub::Transaction *
-);
+struct ApiContext {
+    rapidjson::Value &req_data;
+    rapidjson::Value &resp_data;
+    std::string &err_msg;
+    rapidjson::MemoryPoolAllocator<rapidjson::CrtAllocator> &resp_allocator;
+    bustub::Transaction *txn;
+};
 
-bool QueryTableByName(
-    rapidjson::Value &req_data, rapidjson::Value &resp_data, std::string &err_msg,
-    rapidjson::MemoryPoolAllocator<rapidjson::CrtAllocator> &resp_allocator,
-    bustub::Transaction *
-);
+using ApiFuncType = std::function<bool(ApiContext &)>;
+
+bool SubmitSqlCommand(ApiContext &);
+
+bool QueryTableByName(ApiContext &);
+
+bool GetAllTables(ApiContext &);
+
+bool GetBufferPoolInfo(ApiContext &);
 
 }  // namespace myapi
-
-using ApiFuncType = std::function<bool(
-    rapidjson::Value &, rapidjson::Value &, std::string &,
-    rapidjson::MemoryPoolAllocator<rapidjson::CrtAllocator> &,
-    bustub::Transaction *
-)>;
 
 auto DispatchRequest(const std::string &request) -> std::string;
 
