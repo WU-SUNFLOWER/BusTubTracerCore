@@ -36,6 +36,12 @@ bool GetAllTables(ApiContext &);
 
 bool GetBufferPoolInfo(ApiContext &);
 
+bool GetTableHeapInfo(ApiContext &); 
+
+bool GetTablePageInfo(ApiContext &); 
+
+bool GetTupleInfo(ApiContext &);
+
 }  // namespace myapi
 
 auto DispatchRequest(const std::string &request) -> std::string;

@@ -9,14 +9,17 @@
 
 namespace bustub {
 
-static constexpr uint32_t TEST1_SIZE = 1000;
-static constexpr uint32_t TEST2_SIZE = 100;
-static constexpr uint32_t TEST3_SIZE = 100;
-static constexpr uint32_t TEST4_SIZE = 100;
-static constexpr uint32_t TEST6_SIZE = 100;
-static constexpr uint32_t TEST7_SIZE = 100;
-static constexpr uint32_t TEST8_SIZE = 10;
-static constexpr uint32_t TEST9_SIZE = 10;
+static constexpr uint32_t TEST1_SIZE = 100;
+static constexpr uint32_t TEST2_SIZE = 1000;
+static constexpr uint32_t TEST3_SIZE = 5000;
+/*
+static constexpr uint32_t TEST4_SIZE = 100000;
+static constexpr uint32_t TEST5_SIZE = 10000;
+static constexpr uint32_t TEST6_SIZE = 50000;
+static constexpr uint32_t TEST7_SIZE = 100000;
+static constexpr uint32_t TEST8_SIZE = 1000000;
+*/
+
 static constexpr uint32_t TEST_VARLEN_SIZE = 10;
 
 class TableGenerator {

@@ -138,7 +138,7 @@ class TablePage : public Page {
    */
   auto GetNextTupleRid(const RID &cur_rid, RID *next_rid) -> bool;
 
- private:
+ public:
   static_assert(sizeof(page_id_t) == 4);
 
   static constexpr size_t SIZE_TABLE_PAGE_HEADER = 24;

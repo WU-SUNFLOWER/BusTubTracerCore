@@ -110,63 +110,64 @@ void TableGenerator::GenerateTestTables() {
 
       // Table 2
       {"test_2",
-       TEST7_SIZE,
+       TEST2_SIZE,
        {{"colA", TypeId::INTEGER, false, Dist::Serial, 0, 99},
         {"colB", TypeId::INTEGER, true, Dist::Uniform, 0, 999},
         {"colC", TypeId::INTEGER, true, Dist::Cyclic, 0, 9}}},
 
-      // // Table 3
-      // {"test_3",
-      //  TEST3_SIZE,
-      //  {{"colA", TypeId::INTEGER, false, Dist::Serial, 0, 0}, {"colB", TypeId::INTEGER, true, Dist::Serial, 0, 0}}},
+      // Table 3
+      {"test_3",
+       TEST3_SIZE,
+       {{"col1", TypeId::SMALLINT, false, Dist::Serial, 0, 0},
+        {"col2", TypeId::INTEGER, true, Dist::Uniform, 0, 9},
+        {"col3", TypeId::BIGINT, false, Dist::Uniform, 0, 1024},
+        {"col4", TypeId::INTEGER, true, Dist::Uniform, 0, 2048}}},
 
-      // // Table 4
-      // {"test_4",
-      //  TEST4_SIZE,
-      //  {{"colA", TypeId::BIGINT, false, Dist::Serial, 0, 0},
-      //   {"colB", TypeId::INTEGER, true, Dist::Serial, 0, 0},
-      //   {"colC", TypeId::INTEGER, true, Dist::Uniform, 0, 9}}},
+      /*
+      // Table 4
+      {"test_4",
+       TEST4_SIZE,
+       {{"colA", TypeId::BIGINT, false, Dist::Serial, 0, 0},
+        {"colB", TypeId::INTEGER, true, Dist::Serial, 0, 0},
+        {"colC", TypeId::INTEGER, true, Dist::Uniform, 0, 9}}},
 
-      // // Table 5
-      // {"test_5",
-      //  0,
-      //  {{"colA", TypeId::BIGINT, false, Dist::Serial, 0, 0}, {"colB", TypeId::INTEGER, true, Dist::Serial, 0, 0}}},
+      // Table 5
+      {"test_5",
+       0,
+       {{"colA", TypeId::BIGINT, false, Dist::Serial, 0, 0}, {"colB", TypeId::INTEGER, true, Dist::Serial, 0, 0}}},
 
-      // // Table 6
-      // {"test_6",
-      //  TEST6_SIZE,
-      //  {{"colA", TypeId::BIGINT, false, Dist::Serial, 0, 0},
-      //   {"colB", TypeId::INTEGER, true, Dist::Serial, 0, 0},
-      //   {"colC", TypeId::INTEGER, true, Dist::Uniform, 0, 9}}},
+      // Table 6
+      {"test_6",
+       TEST6_SIZE,
+       {{"colA", TypeId::BIGINT, false, Dist::Serial, 0, 0},
+        {"colB", TypeId::INTEGER, true, Dist::Serial, 0, 0},
+        {"colC", TypeId::INTEGER, true, Dist::Uniform, 0, 9}}},
 
-      // // Table 7
-      // {"test_7",
-      //  TEST7_SIZE,
-      //  {{"col1", TypeId::SMALLINT, false, Dist::Serial, 0, 0},
-      //   {"col2", TypeId::INTEGER, true, Dist::Uniform, 0, 9},
-      //   {"col3", TypeId::BIGINT, false, Dist::Uniform, 0, 1024},
-      //   {"col4", TypeId::INTEGER, true, Dist::Uniform, 0, 2048}}},
+      // Table 7
+      {"test_7",
+       TEST7_SIZE,
+       {{"col1", TypeId::SMALLINT, false, Dist::Serial, 0, 0},
+        {"col2", TypeId::INTEGER, true, Dist::Uniform, 0, 9},
+        {"col3", TypeId::BIGINT, false, Dist::Uniform, 0, 1024},
+        {"col4", TypeId::INTEGER, true, Dist::Uniform, 0, 2048}}},
 
-      // // Table 8
-      // {"test_8",
-      //  TEST8_SIZE,
-      //  {{"colA", TypeId::BIGINT, false, Dist::Serial, 0, 0}, {"colB", TypeId::INTEGER, true, Dist::Serial, 0, 0}}},
+      // Table 8
+      {"test_8",
+       TEST8_SIZE,
+       {{"colA", TypeId::BIGINT, false, Dist::Serial, 0, 0}, {"colB", TypeId::INTEGER, true, Dist::Serial, 0, 0}}},
+      
+      */
 
-      // // Table 9
-      // {"test_9",
-      //  TEST9_SIZE,
-      //  {{"colA", TypeId::BIGINT, false, Dist::Serial, 0, 0}, {"colB", TypeId::INTEGER, true, Dist::Serial, 0, 0}}},
+      // Empty table with two columns
+      {"empty_table2",
+       0,
+       {{"colA", TypeId::INTEGER, false, Dist::Serial, 0, 0}, {"colB", TypeId::INTEGER, false, Dist::Uniform, 0,
+       9}}},
 
-      // // Empty table with two columns
-      // {"empty_table2",
-      //  0,
-      //  {{"colA", TypeId::INTEGER, false, Dist::Serial, 0, 0}, {"colB", TypeId::INTEGER, false, Dist::Uniform, 0,
-      //  9}}},
-
-      // // Empty table with two columns
-      // {"empty_table3",
-      //  0,
-      //  {{"colA", TypeId::BIGINT, false, Dist::Serial, 0, 0}, {"colB", TypeId::INTEGER, false, Dist::Uniform, 0, 9}}},
+      // Empty table with two columns
+      {"empty_table3",
+       0,
+       {{"colA", TypeId::BIGINT, false, Dist::Serial, 0, 0}, {"colB", TypeId::INTEGER, false, Dist::Uniform, 0, 9}}},
   };
 
   for (auto &table_meta : insert_meta) {

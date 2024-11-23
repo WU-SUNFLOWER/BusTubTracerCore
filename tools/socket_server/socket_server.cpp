@@ -29,11 +29,7 @@ std::unique_ptr<bustub::BustubInstance> kBusbubInstance = nullptr;
 void BustubInit() {
     std::cout << "Initialize BusTub..." << std::endl;
     auto bustub = std::make_unique<bustub::BustubInstance>("test.db");
-    bustub->GenerateMockTable();
-
-    if (bustub->buffer_pool_manager_ != nullptr) {
-        bustub->GenerateTestTable();
-    }
+    bustub->GenerateTestTable();
 
     kBusbubInstance = std::move(bustub);
 
