@@ -81,6 +81,11 @@ class HashJoinPlanNode : public AbstractPlanNode {
     return fmt::format("HashJoin {{ type={}, left_key={}, right_key={} }}", join_type_, left_key_expression_,
                        right_key_expression_);
   }
+  void PlanNodeToJSON(rapidjson::Value &json_attr, rapidjson_allocator_t &json_alloc) const override {
+    json_attr.AddMember("type",       rapidjson::Value(fmt::format("{}", join_type_).c_str(),             json_alloc), json_alloc);
+    json_attr.AddMember("left_key",   rapidjson::Value(fmt::format("{}", left_key_expression_).c_str(),   json_alloc), json_alloc);
+    json_attr.AddMember("right_key",  rapidjson::Value(fmt::format("{}", right_key_expression_).c_str(),  json_alloc), json_alloc);
+  }
 };
 
 }  // namespace bustub

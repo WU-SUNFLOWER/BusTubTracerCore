@@ -11,6 +11,7 @@ add_subdirectory(type)
 add_subdirectory(planner)
 add_subdirectory(primer)
 add_subdirectory(optimizer)
+add_subdirectory(myapi)
 
 add_library(bustub STATIC ${ALL_OBJECT_FILES})
 
@@ -32,6 +33,7 @@ set(BUSTUB_LIBS
         bustub_planner
         bustub_primer
         bustub_optimizer
+        bustub_myapi
         )
 
 find_package(Threads REQUIRED)

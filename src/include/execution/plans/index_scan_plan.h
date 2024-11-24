@@ -49,6 +49,9 @@ class IndexScanPlanNode : public AbstractPlanNode {
   auto PlanNodeToString() const -> std::string override {
     return fmt::format("IndexScan {{ index_oid={} }}", index_oid_);
   }
+  void PlanNodeToJSON(rapidjson::Value &json_attr, rapidjson_allocator_t &json_alloc) const override {
+    json_attr.AddMember("index_oid", index_oid_, json_alloc);
+  }
 };
 
 }  // namespace bustub

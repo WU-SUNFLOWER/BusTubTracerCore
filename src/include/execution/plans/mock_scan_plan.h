@@ -44,7 +44,12 @@ class MockScanPlanNode : public AbstractPlanNode {
   BUSTUB_PLAN_NODE_CLONE_WITH_CHILDREN(MockScanPlanNode);
 
  protected:
-  auto PlanNodeToString() const -> std::string override { return fmt::format("MockScan {{ table={} }}", table_); }
+  auto PlanNodeToString() const -> std::string override { 
+    return fmt::format("MockScan {{ table={} }}", table_); 
+  }
+  void PlanNodeToJSON(rapidjson::Value &json_attr, rapidjson_allocator_t &json_alloc) const override {
+    json_attr.AddMember("table", rapidjson::Value(table_.c_str(), json_alloc), json_alloc);
+  }
 
  private:
   /** The table name of this mock scan executor */

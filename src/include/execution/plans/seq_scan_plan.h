@@ -69,6 +69,12 @@ class SeqScanPlanNode : public AbstractPlanNode {
     }
     return fmt::format("SeqScan {{ table={} }}", table_name_);
   }
+  void PlanNodeToJSON(rapidjson::Value &json_attr, rapidjson_allocator_t &json_alloc) const override {
+    json_attr.AddMember("table", rapidjson::Value(table_name_.c_str(), json_alloc), json_alloc);
+    if (filter_predicate_) {
+      json_attr.AddMember("filter", rapidjson::Value(fmt::format("{}", filter_predicate_).c_str(), json_alloc), json_alloc);
+    }
+  }
 };
 
 }  // namespace bustub

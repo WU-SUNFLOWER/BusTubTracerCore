@@ -86,5 +86,12 @@ class NestedIndexJoinPlanNode : public AbstractPlanNode {
     return fmt::format("NestedIndexJoin {{ type={}, key_predicate={}, index={}, index_table={} }}", join_type_,
                        key_predicate_, index_name_, index_table_name_);
   }
+  void PlanNodeToJSON(rapidjson::Value &json_attr, rapidjson_allocator_t &json_alloc) const override {
+    json_attr.AddMember("types",          rapidjson::Value(fmt::format("{}", join_type_).c_str(),     json_alloc), json_alloc);
+    json_attr.AddMember("key_predicate",  rapidjson::Value(fmt::format("{}", key_predicate_).c_str(), json_alloc), json_alloc);
+    json_attr.AddMember("index",          rapidjson::Value(index_name_.c_str(),                       json_alloc), json_alloc);
+    json_attr.AddMember("index_table",    rapidjson::Value(index_table_name_.c_str(),                 json_alloc), json_alloc);
+  }
 };
+
 }  // namespace bustub

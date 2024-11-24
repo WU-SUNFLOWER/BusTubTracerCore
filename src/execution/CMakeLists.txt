@@ -20,6 +20,7 @@ add_library(
         topn_executor.cpp
         update_executor.cpp
         values_executor.cpp
+        abstract_plan.cpp
 )
 
 set(ALL_OBJECT_FILES

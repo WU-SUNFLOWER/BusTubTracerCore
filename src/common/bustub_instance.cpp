@@ -34,6 +34,8 @@
 #include "storage/disk/disk_manager.h"
 #include "storage/disk/disk_manager_memory.h"
 #include "type/value_factory.h"
+#include "myapi/api_manager.h"
+#include "myapi/process_record_context.h"
 
 namespace bustub {
 
@@ -180,7 +182,11 @@ auto BustubInstance::ExecuteSql(const std::string &sql, ResultWriter &writer) ->
   return result;
 }
 
-auto BustubInstance::ExecuteSqlTxn(const std::string &sql, ResultWriter &writer, Transaction *txn) -> bool {
+auto BustubInstance::ExecuteSqlTxn(
+  const std::string &sql, ResultWriter &writer, Transaction *txn,
+  ProcessRecordContext *ptx
+) -> bool 
+{
   if (!sql.empty() && sql[0] == '\\') {
     // Internal meta-commands, like in `psql`.
     if (sql == "\\dt") {
@@ -310,13 +316,18 @@ auto BustubInstance::ExecuteSqlTxn(const std::string &sql, ResultWriter &writer,
 
     std::shared_lock<std::shared_mutex> l(catalog_lock_);
 
+    // The process of this SQL command can be recorded.
+    if (ptx != nullptr) ptx->SetCanRecord();
+
     // Plan the query.
     bustub::Planner planner(*catalog_);
     planner.PlanQuery(*statement);
+    if (ptx != nullptr) planner.plan_->ToJSON(ptx->planner_tree_record_, ptx->allocator_);
 
     // Optimize the query.
     bustub::Optimizer optimizer(*catalog_, IsForceStarterRule());
     auto optimized_plan = optimizer.Optimize(planner.plan_);
+    if (ptx != nullptr) optimized_plan->ToJSON(ptx->opt_planner_tree_record_, ptx->allocator_);
 
     l.unlock();
 

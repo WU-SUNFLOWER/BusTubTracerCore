@@ -30,6 +30,7 @@ namespace bustub {
  */
 class ProjectionPlanNode : public AbstractPlanNode {
  public:
+
   /**
    * Construct a new ProjectionPlanNode instance.
    * @param output The output schema of this projection node
@@ -61,6 +62,9 @@ class ProjectionPlanNode : public AbstractPlanNode {
 
  protected:
   auto PlanNodeToString() const -> std::string override;
+
+  void PlanNodeToJSON(rapidjson::Value &, rapidjson_allocator_t &) const override;
+
 };
 
 }  // namespace bustub

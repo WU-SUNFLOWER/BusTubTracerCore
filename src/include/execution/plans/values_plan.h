@@ -48,7 +48,20 @@ class ValuesPlanNode : public AbstractPlanNode {
   std::vector<std::vector<AbstractExpressionRef>> values_;
 
  protected:
-  auto PlanNodeToString() const -> std::string override { return fmt::format("Values {{ rows={} }}", values_.size()); }
+  auto PlanNodeToString() const -> std::string override { 
+    return fmt::format("Values {{ rows={} }}", values_.size()); 
+  }
+  void PlanNodeToJSON(rapidjson::Value &json_attr, rapidjson_allocator_t &json_alloc) const override {
+    rapidjson::Value json_rows(rapidjson::kArrayType);
+    for (const auto& row : values_) {
+      rapidjson::Value json_row(rapidjson::kArrayType);
+      for (const auto& value : row) {
+        json_row.PushBack(rapidjson::Value(fmt::format("{}", value).c_str(), json_alloc), json_alloc);
+      }
+      json_rows.PushBack(json_row, json_alloc);
+    }
+    json_attr.AddMember("rows", json_rows, json_alloc);
+  }
 };
 
 }  // namespace bustub

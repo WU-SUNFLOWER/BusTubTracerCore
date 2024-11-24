@@ -3,9 +3,27 @@
 
 #include "buffer/buffer_pool_manager_instance.h"
 
-#include "api_implementation.h"
+#include "myapi/api_manager.h"
 
-bool myapi::SubmitSqlCommand(ApiContext &ctx) 
+ApiManager::ApiManager(bustub::BustubInstance *bustub_instance) 
+    : kBustubInstance_(bustub_instance)
+{
+#define BIND_API(api_func) (std::bind(&api_func, this, std::placeholders::_1))
+
+    kApiMap_ = {
+        {"/submit_sql_command",     BIND_API(ApiManager::SubmitSqlCommand)  },
+        {"/query_table_by_name",    BIND_API(ApiManager::QueryTableByName)  },
+        {"/get_all_tables",         BIND_API(ApiManager::GetAllTables)      },
+        {"/get_buffer_pool_info",   BIND_API(ApiManager::GetBufferPoolInfo) },
+        {"/get_table_heap_info",    BIND_API(ApiManager::GetTableHeapInfo)  },
+        {"/get_table_page_info",    BIND_API(ApiManager::GetTablePageInfo)  },
+        {"/get_tuple_info",         BIND_API(ApiManager::GetTupleInfo)      },
+    };
+
+#undef BIND_API
+}
+
+bool ApiManager::SubmitSqlCommand(ApiContext &ctx) 
 {
     if (!ctx.req_data.HasMember("sql") || !ctx.req_data["sql"].IsString()) {
         ctx.err_msg = "Missing or invalid 'sql' field";
@@ -15,9 +33,12 @@ bool myapi::SubmitSqlCommand(ApiContext &ctx)
     std::string sql_command = ctx.req_data["sql"].GetString();
     std::string sql_result;
 
+    ProcessRecordContext ptx(ctx.resp_allocator);
+    rapidjson::Value process_info_json(rapidjson::kObjectType);
+
     try {
         auto writer = bustub::FortTableWriter();
-        kBusbubInstance->ExecuteSqlTxn(sql_command, writer, ctx.txn);
+        kBustubInstance_->ExecuteSqlTxn(sql_command, writer, ctx.txn, &ptx);
         for (const auto &table : writer.tables_) {
             sql_result += table;
         }
@@ -37,11 +58,17 @@ bool myapi::SubmitSqlCommand(ApiContext &ctx)
         rapidjson::Value(sql_result.c_str(), ctx.resp_allocator),
         ctx.resp_allocator
     );
+    ctx.resp_data.AddMember("can_show_process", ptx.CanRecord(), ctx.resp_allocator);
+
+    if (ptx.CanRecord()) {
+        ptx.Save(process_info_json);
+        ctx.resp_data.AddMember("process_info", process_info_json, ctx.resp_allocator);
+    }
 
     return true;
 }
 
-bool myapi::QueryTableByName(ApiContext &ctx) 
+bool ApiManager::QueryTableByName(ApiContext &ctx) 
 {
 
     if (!ctx.req_data.HasMember("table_name") || !ctx.req_data["table_name"].IsString()) {
@@ -50,7 +77,7 @@ bool myapi::QueryTableByName(ApiContext &ctx)
     }
 
     std::string table_name = ctx.req_data["table_name"].GetString();
-    bustub::TableInfo* table_info = kBusbubInstance->catalog_->GetTable(table_name);
+    bustub::TableInfo* table_info = kBustubInstance_->catalog_->GetTable(table_name);
     if (table_info == bustub::Catalog::NULL_TABLE_INFO) {
         ctx.err_msg = "Can't find table matched with 'table_name' field";
         return false;
@@ -110,7 +137,7 @@ bool myapi::QueryTableByName(ApiContext &ctx)
 
     rapidjson::Value resp_indices(rapidjson::kArrayType);
     std::vector<bustub::IndexInfo *> table_indexes = 
-        kBusbubInstance->catalog_->GetTableIndexes(table_name);
+        kBustubInstance_->catalog_->GetTableIndexes(table_name);
     for (auto &index_info : table_indexes) {
         rapidjson::Value resp_index_info(rapidjson::kObjectType);
         resp_index_info.AddMember(
@@ -140,19 +167,19 @@ bool myapi::QueryTableByName(ApiContext &ctx)
     return true;
 }
 
-bool myapi::GetAllTables(ApiContext &ctx) {
+bool ApiManager::GetAllTables(ApiContext &ctx) {
     
     if (ctx.req_data.MemberCount() != 0) {
         ctx.err_msg = "This api hasn't any parameter.";
         return false;
     }
 
-    std::vector<std::string> table_names = kBusbubInstance->catalog_->GetTableNames();
+    std::vector<std::string> table_names = kBustubInstance_->catalog_->GetTableNames();
 
     rapidjson::Value resp_tables(rapidjson::kArrayType);
 
     for (const std::string &name : table_names) {
-        bustub::TableInfo *table = kBusbubInstance->catalog_->GetTable(name);
+        bustub::TableInfo *table = kBustubInstance_->catalog_->GetTable(name);
 
         rapidjson::Value resp_table_info(rapidjson::kObjectType);
         resp_table_info.AddMember(
@@ -172,7 +199,7 @@ bool myapi::GetAllTables(ApiContext &ctx) {
     return true;
 }
 
-bool myapi::GetBufferPoolInfo(ApiContext &ctx) {
+bool ApiManager::GetBufferPoolInfo(ApiContext &ctx) {
     
     if (ctx.req_data.MemberCount() != 0) {
         ctx.err_msg = "This api hasn't any parameter.";
@@ -180,7 +207,7 @@ bool myapi::GetBufferPoolInfo(ApiContext &ctx) {
     }
     
     bustub::BufferPoolManagerInstance *buffer_pool = 
-        dynamic_cast<bustub::BufferPoolManagerInstance*>(kBusbubInstance->buffer_pool_manager_);
+        dynamic_cast<bustub::BufferPoolManagerInstance*>(kBustubInstance_->buffer_pool_manager_);
 
     if (buffer_pool == nullptr) {
         ctx.err_msg = "Fail to access buffer pool of BusTub.";
@@ -229,7 +256,7 @@ bool myapi::GetBufferPoolInfo(ApiContext &ctx) {
     return true;
 }
 
-bool myapi::GetTableHeapInfo(ApiContext &ctx) {
+bool ApiManager::GetTableHeapInfo(ApiContext &ctx) {
 
     if (!ctx.req_data.HasMember("table_oid") || !ctx.req_data["table_oid"].IsNumber()) {
         ctx.err_msg = "Missing or invalid 'table_oid' field";
@@ -237,7 +264,7 @@ bool myapi::GetTableHeapInfo(ApiContext &ctx) {
     }
 
     bustub::TableInfo *table_info = 
-        kBusbubInstance->catalog_->GetTable(ctx.req_data["table_oid"].GetUint());
+        kBustubInstance_->catalog_->GetTable(ctx.req_data["table_oid"].GetUint());
     bustub::TableHeap *table_heap = table_info->table_.get();
     bustub::page_id_t first_page_id = table_heap->GetFirstPageId();
 
@@ -245,7 +272,7 @@ bool myapi::GetTableHeapInfo(ApiContext &ctx) {
     bustub::page_id_t cur_page_id = first_page_id;
     while (cur_page_id != bustub::INVALID_PAGE_ID) {
         bustub::TablePage *cur_page = reinterpret_cast<bustub::TablePage *>
-            (kBusbubInstance->buffer_pool_manager_->FetchPage(cur_page_id));
+            (kBustubInstance_->buffer_pool_manager_->FetchPage(cur_page_id));
 
         if (cur_page->GetPageId() != cur_page_id) {
             ctx.err_msg = fmt::format("Illegal table page id={}", cur_page_id);
@@ -260,7 +287,7 @@ bool myapi::GetTableHeapInfo(ApiContext &ctx) {
     return true;
 }
 
-bool myapi::GetTablePageInfo(ApiContext &ctx) {
+bool ApiManager::GetTablePageInfo(ApiContext &ctx) {
 
     if (!ctx.req_data.HasMember("page_id") || !ctx.req_data["page_id"].IsNumber()) {
         ctx.err_msg = "Missing or invalid 'page_id' field";
@@ -274,7 +301,7 @@ bool myapi::GetTablePageInfo(ApiContext &ctx) {
     }
 
     bustub::TablePage *table_page = reinterpret_cast<bustub::TablePage *>
-        (kBusbubInstance->buffer_pool_manager_->FetchPage(page_id));
+        (kBustubInstance_->buffer_pool_manager_->FetchPage(page_id));
 
     if (table_page->GetTablePageId() != page_id) {
         ctx.err_msg = fmt::format("Illegal table page id {}", page_id);
@@ -315,14 +342,14 @@ bool myapi::GetTablePageInfo(ApiContext &ctx) {
     return true;
 }
 
-bool myapi::GetTupleInfo(ApiContext &ctx) {
+bool ApiManager::GetTupleInfo(ApiContext &ctx) {
     // preprocess table_oid
     if (!ctx.req_data.HasMember("table_oid") || !ctx.req_data["table_oid"].IsNumber()) {
         ctx.err_msg = "Missing or invalid 'table_oid' field";
         return false;
     }
     bustub::table_oid_t table_oid = ctx.req_data["table_oid"].GetUint();
-    bustub::TableInfo *table_info = kBusbubInstance->catalog_->GetTable(table_oid);
+    bustub::TableInfo *table_info = kBustubInstance_->catalog_->GetTable(table_oid);
     if (table_info == bustub::Catalog::NULL_TABLE_INFO) {
         ctx.err_msg = fmt::format("Can't find table oid={}", table_oid);
         return false;
@@ -339,7 +366,7 @@ bool myapi::GetTupleInfo(ApiContext &ctx) {
         return false;
     }
     bustub::TablePage *table_page = reinterpret_cast<bustub::TablePage *>
-        (kBusbubInstance->buffer_pool_manager_->FetchPage(page_id));
+        (kBustubInstance_->buffer_pool_manager_->FetchPage(page_id));
     if (table_page->GetPageId() != page_id) {
         ctx.err_msg = fmt::format("Illegal page id {}", page_id);
         return false;
@@ -407,18 +434,7 @@ bool myapi::GetTupleInfo(ApiContext &ctx) {
 
 }
 
-
-static const std::unordered_map<std::string, myapi::ApiFuncType> kApiMap = {
-    {"/submit_sql_command", &myapi::SubmitSqlCommand},
-    {"/query_table_by_name", &myapi::QueryTableByName},
-    {"/get_all_tables", &myapi::GetAllTables},
-    {"/get_buffer_pool_info", &myapi::GetBufferPoolInfo},
-    {"/get_table_heap_info", &myapi::GetTableHeapInfo},
-    {"/get_table_page_info", &myapi::GetTablePageInfo},
-    {"/get_tuple_info", &myapi::GetTupleInfo},
-};
-
-auto DispatchRequest(const std::string &request) -> std::string {
+auto ApiManager::DispatchRequest(const std::string &request) -> std::string {
     
     /* preprocess request json */
     rapidjson::Document req_json;
@@ -438,7 +454,7 @@ auto DispatchRequest(const std::string &request) -> std::string {
     /* preprocess respond_json */
     rapidjson::Document resp_json;
     resp_json.SetObject();
-    auto& resp_allocator = resp_json.GetAllocator();
+    auto &resp_allocator = resp_json.GetAllocator();
 
     resp_json.AddMember(
         "data", 
@@ -457,14 +473,14 @@ auto DispatchRequest(const std::string &request) -> std::string {
 
     /* dispatch start!!! */
 
-    auto api_iter = kApiMap.find(api_name);
+    auto api_iter = kApiMap_.find(api_name);
 
-    if (api_iter != kApiMap.end()) {
-        myapi::ApiFuncType api_func = api_iter->second;
-        bustub::Transaction *txn = kBusbubInstance->txn_manager_->Begin();
+    if (api_iter != kApiMap_.end()) {
+        ApiFuncType api_func = api_iter->second;
+        bustub::Transaction *txn = kBustubInstance_->txn_manager_->Begin();
 
         // transcation start
-        myapi::ApiContext api_context = 
+        ApiContext api_context = 
             {req_data, resp_data, err_msg, resp_allocator, txn};
         bool result = api_func(api_context);
         std::string result_json;
@@ -472,11 +488,22 @@ auto DispatchRequest(const std::string &request) -> std::string {
             resp_json.Accept(json_writer);
             result_json = json_buffer.GetString();
         } else {
-            result_json = fmt::format(R"({{ "err_msg": "{}" }})", err_msg);
+            rapidjson::Document resp_err_json;
+            resp_err_json.SetObject();
+            auto &resp_err_allocator = resp_err_json.GetAllocator();
+
+            resp_err_json.AddMember(
+                "err_msg", 
+                rapidjson::Value(err_msg.c_str(), resp_err_allocator), 
+                resp_err_allocator
+            );
+
+            resp_err_json.Accept(json_writer);
+            return json_buffer.GetString();
         }
         // transcation end
 
-        kBusbubInstance->txn_manager_->Commit(txn);
+        kBustubInstance_->txn_manager_->Commit(txn);
         delete txn;
         return result_json;
     }

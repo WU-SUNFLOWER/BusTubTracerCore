@@ -31,6 +31,7 @@ auto AbstractPlanNode::ChildrenToString(int indent, bool with_schema) const -> s
   return fmt::format("\n{}", fmt::join(children_str, "\n"));
 }
 
+// PlanNodeToString
 auto AggregationPlanNode::PlanNodeToString() const -> std::string {
   return fmt::format("Agg {{ types={}, aggregates={}, group_by={} }}", agg_types_, aggregates_, group_bys_);
 }
@@ -51,6 +52,41 @@ auto LimitPlanNode::PlanNodeToString() const -> std::string { return fmt::format
 
 auto TopNPlanNode::PlanNodeToString() const -> std::string {
   return fmt::format("TopN {{ n={}, order_bys={}}}", n_, order_bys_);
+}
+
+// PlanNodeToJSON
+void AggregationPlanNode::PlanNodeToJSON(rapidjson::Value &json_attr, rapidjson_allocator_t &json_alloc) const {
+
+  json_attr.AddMember("types", rapidjson::Value(fmt::format("{}", agg_types_).c_str(), json_alloc), json_alloc);
+  json_attr.AddMember("aggregates", rapidjson::Value(fmt::format("{}", aggregates_).c_str(), json_alloc), json_alloc);
+  json_attr.AddMember("group_by", rapidjson::Value(fmt::format("{}", group_bys_).c_str(), json_alloc), json_alloc);
+  
+}
+
+void ProjectionPlanNode::PlanNodeToJSON(rapidjson::Value &json_attr, rapidjson_allocator_t &json_alloc) const {
+  json_attr.AddMember(
+    "expressions", 
+    rapidjson::Value(fmt::format("{}", expressions_).c_str(), json_alloc),
+    json_alloc
+  );
+}
+
+void UpdatePlanNode::PlanNodeToJSON(rapidjson::Value &json_attr, rapidjson_allocator_t &json_alloc) const {
+  json_attr.AddMember("table_oid", table_oid_, json_alloc);
+  json_attr.AddMember("target_exprs", rapidjson::Value(fmt::format("{}", target_expressions_).c_str(), json_alloc), json_alloc);
+}
+
+void SortPlanNode::PlanNodeToJSON(rapidjson::Value &json_attr, rapidjson_allocator_t &json_alloc) const {
+  json_attr.AddMember("order_bys", rapidjson::Value(fmt::format("{}", order_bys_).c_str(), json_alloc), json_alloc);
+}
+
+void LimitPlanNode::PlanNodeToJSON(rapidjson::Value &json_attr, rapidjson_allocator_t &json_alloc) const {
+  json_attr.AddMember("limit", limit_, json_alloc);
+}
+
+void TopNPlanNode::PlanNodeToJSON(rapidjson::Value &json_attr, rapidjson_allocator_t &json_alloc) const {
+  json_attr.AddMember("n", n_, json_alloc);
+  json_attr.AddMember("order_bys", rapidjson::Value(fmt::format("{}", order_bys_).c_str(), json_alloc), json_alloc);
 }
 
 }  // namespace bustub

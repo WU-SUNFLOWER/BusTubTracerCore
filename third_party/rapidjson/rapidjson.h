@@ -434,7 +434,18 @@ RAPIDJSON_NAMESPACE_END
 */
 #ifndef RAPIDJSON_ASSERT
 #include <cassert>
-#define RAPIDJSON_ASSERT(x) assert(x)
+#include <unistd.h>
+#include <execinfo.h>
+#define RAPIDJSON_ASSERT(x)                                     \
+    {                                                           \
+        if (static_cast<bool>(x) == false) {                    \
+            void *array[10];                                    \
+            size_t size = backtrace(array, 10);                 \
+            backtrace_symbols_fd(array, size, STDERR_FILENO);   \
+            assert(x);                                          \
+        }                                                       \
+    }
+
 #endif // RAPIDJSON_ASSERT
 
 ///////////////////////////////////////////////////////////////////////////////

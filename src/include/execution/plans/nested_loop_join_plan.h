@@ -71,6 +71,10 @@ class NestedLoopJoinPlanNode : public AbstractPlanNode {
   auto PlanNodeToString() const -> std::string override {
     return fmt::format("NestedLoopJoin {{ type={}, predicate={} }}", join_type_, predicate_);
   }
+  void PlanNodeToJSON(rapidjson::Value &json_attr, rapidjson_allocator_t &json_alloc) const override {
+    json_attr.AddMember("types",      rapidjson::Value(fmt::format("{}", join_type_).c_str(),     json_alloc), json_alloc);
+    json_attr.AddMember("predicate",  rapidjson::Value(fmt::format("{}", predicate_).c_str(),     json_alloc), json_alloc);
+  }
 };
 
 }  // namespace bustub

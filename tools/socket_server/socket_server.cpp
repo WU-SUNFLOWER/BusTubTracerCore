@@ -10,7 +10,7 @@
 #include <vector>
 #include <algorithm>
 
-#include "api_implementation.h"
+#include "myapi/api_manager.h"
 
 #define SOCKET_PATH "/tmp/bustub_core_socket"
 #define RECV_BUFFER_SIZE 16
@@ -24,14 +24,14 @@
 // type=1, server->client
 #define OPTIONS_TYPE_MASK 0x01  
 
-std::unique_ptr<bustub::BustubInstance> kBusbubInstance = nullptr;
+static std::unique_ptr<bustub::BustubInstance> kBustubInstance = nullptr;
 
 void BustubInit() {
     std::cout << "Initialize BusTub..." << std::endl;
     auto bustub = std::make_unique<bustub::BustubInstance>("test.db");
     bustub->GenerateTestTable();
 
-    kBusbubInstance = std::move(bustub);
+    kBustubInstance = std::move(bustub);
 
     std::cout << "BusTub Initialized!" << std::endl;
 
@@ -172,7 +172,9 @@ int main() {
             if (payload_buffer.length() == total_payload_length) {
                 std::cout << "receive from client: " << payload_buffer << std::endl;
 
-                std::string respond = std::move(DispatchRequest(payload_buffer));
+                ApiManager api_manager(kBustubInstance.get());
+                std::string respond = std::move(api_manager.DispatchRequest(payload_buffer));
+                
                 std::vector<uint8_t> datagram = std::move(PackDatagram(respond));
                 if (send(client_fd, datagram.data(), datagram.size(), 0) == -1) {
                     std::cerr << "can't send to client" << std::endl;

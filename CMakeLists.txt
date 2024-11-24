@@ -122,7 +122,7 @@ set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0 -ggdb -fsanitize=${BUSTU
 
 set(CMAKE_CXX_FLAGS_RELEASE "-Wall -Wextra -Werror")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Wno-unused-parameter -Wno-attributes")
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O0 -fno-omit-frame-pointer -fno-optimize-sibling-calls")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O0 -ggdb -fno-omit-frame-pointer -fno-optimize-sibling-calls")
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 

@@ -55,7 +55,12 @@ class InsertPlanNode : public AbstractPlanNode {
   table_oid_t table_oid_;
 
  protected:
-  auto PlanNodeToString() const -> std::string override { return fmt::format("Insert {{ table_oid={} }}", table_oid_); }
+  auto PlanNodeToString() const -> std::string override { 
+    return fmt::format("Insert {{ table_oid={} }}", table_oid_); 
+  }
+  void PlanNodeToJSON(rapidjson::Value &json_attr, rapidjson_allocator_t &json_alloc) const override {
+    json_attr.AddMember("table_oid", table_oid_, json_alloc);
+  }
 };
 
 }  // namespace bustub

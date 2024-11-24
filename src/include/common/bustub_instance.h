@@ -28,6 +28,8 @@
 #include "libfort/lib/fort.hpp"
 #include "type/value.h"
 
+struct ProcessRecordContext;
+
 namespace bustub {
 
 class Transaction;
@@ -225,7 +227,10 @@ class BustubInstance {
   /**
    * Execute a SQL query in the BusTub instance with provided txn.
    */
-  auto ExecuteSqlTxn(const std::string &sql, ResultWriter &writer, Transaction *txn) -> bool;
+  auto ExecuteSqlTxn(
+    const std::string &sql, ResultWriter &writer, 
+    Transaction *txn, ProcessRecordContext *ptx = nullptr
+  ) -> bool;
 
   /**
    * FOR TEST ONLY. Generate test tables in this BusTub instance.

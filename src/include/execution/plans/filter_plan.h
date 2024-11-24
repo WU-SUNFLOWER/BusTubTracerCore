@@ -58,6 +58,13 @@ class FilterPlanNode : public AbstractPlanNode {
   auto PlanNodeToString() const -> std::string override {
     return fmt::format("Filter {{ predicate={} }}", *predicate_);
   }
+  void PlanNodeToJSON(rapidjson::Value &json_attr, rapidjson_allocator_t &json_alloc) const override {
+    json_attr.AddMember(
+      "predicate", 
+      rapidjson::Value(fmt::format("{}", *predicate_).c_str(), json_alloc), 
+      json_alloc
+    );
+  }
 };
 
 }  // namespace bustub

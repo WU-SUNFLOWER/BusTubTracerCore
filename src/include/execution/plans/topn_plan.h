@@ -63,6 +63,7 @@ class TopNPlanNode : public AbstractPlanNode {
 
  protected:
   auto PlanNodeToString() const -> std::string override;
+  void PlanNodeToJSON(rapidjson::Value &, rapidjson_allocator_t &) const override;
 };
 
 }  // namespace bustub

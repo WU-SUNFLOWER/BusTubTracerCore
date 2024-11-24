@@ -1,4 +1,4 @@
-set(SOCKET_SERVER_SOURCES socket_server.cpp api_implementation.cpp)
+set(SOCKET_SERVER_SOURCES socket_server.cpp)
 add_executable(socket_server ${SOCKET_SERVER_SOURCES})
 
 target_link_libraries(socket_server bustub)
