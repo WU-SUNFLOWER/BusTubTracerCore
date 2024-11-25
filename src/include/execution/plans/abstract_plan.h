@@ -133,7 +133,7 @@ class AbstractPlanNode {
   void ToJSON(rapidjson::Value &json_object, rapidjson_allocator_t &json_alloc) const {
 
     json_object.AddMember("planner_node_tag", rapidjson::Value(GetNodeName().c_str(),       json_alloc), json_alloc);
-    json_object.AddMember("planner_node_id",  rapidjson::Value(std::to_string(id_).c_str(), json_alloc), json_alloc);
+    json_object.AddMember("planner_node_id",  id_, json_alloc);
 
     rapidjson::Value json_attr(rapidjson::kObjectType);
     PlanNodeToJSON(json_attr, json_alloc);
