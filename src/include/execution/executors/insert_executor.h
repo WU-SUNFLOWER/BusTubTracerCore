@@ -38,7 +38,7 @@ class InsertExecutor : public AbstractExecutor {
                  std::unique_ptr<AbstractExecutor> &&child_executor);
 
   /** Initialize the insert */
-  void Init() override;
+  void Init(ProcessRecordContext *ptx) override;
 
   /**
    * Yield the number of rows inserted into the table.
@@ -49,7 +49,7 @@ class InsertExecutor : public AbstractExecutor {
    * NOTE: InsertExecutor::Next() does not use the `rid` out-parameter.
    * NOTE: InsertExecutor::Next() returns true with number of inserted rows produced only once.
    */
-  auto Next([[maybe_unused]] Tuple *tuple, RID *rid) -> bool override;
+  auto Next([[maybe_unused]] Tuple *tuple, RID *rid, ProcessRecordContext *ptx) -> bool override;
 
   /** @return The output schema for the insert */
   auto GetOutputSchema() const -> const Schema & override { return plan_->OutputSchema(); };

@@ -19,7 +19,7 @@ private:
         rapidjson::Value &req_data;
         rapidjson::Value &resp_data;
         std::string &err_msg;
-        rapidjson::MemoryPoolAllocator<rapidjson::CrtAllocator> &resp_allocator;
+        rapidjson_allocator_t &resp_allocator;
         bustub::Transaction *txn;
     };
 

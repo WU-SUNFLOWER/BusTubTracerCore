@@ -6,11 +6,11 @@ TopNExecutor::TopNExecutor(ExecutorContext *exec_ctx, const TopNPlanNode *plan,
                            std::unique_ptr<AbstractExecutor> &&child_executor)
     : AbstractExecutor(exec_ctx), plan_(plan), child_executor_(std::move(child_executor)) {}
 
-void TopNExecutor::Init() {
+void TopNExecutor::Init(ProcessRecordContext *ptx) {
   Tuple tuple;
   RID rid;
-  child_executor_->Init();
-  while (child_executor_->Next(&tuple, &rid)) {
+  child_executor_->Init(ptx);
+  while (child_executor_->Next(&tuple, &rid, ptx)) {
     sorted_tuples_.push_back(tuple);
   }
   std::sort(sorted_tuples_.begin(), sorted_tuples_.end(), [this](const Tuple &a, const Tuple &b) {
@@ -30,10 +30,13 @@ void TopNExecutor::Init() {
   iterator_ = sorted_tuples_.begin();
 }
 
-auto TopNExecutor::Next(Tuple *tuple, RID *rid) -> bool {
+auto TopNExecutor::Next(Tuple *tuple, RID *rid, ProcessRecordContext *ptx) -> bool {
   if (index_ < plan_->GetN() && iterator_ != sorted_tuples_.end()) {
     index_++;
+    
     *tuple = *iterator_;
+    if (ptx) ptx->AddToExecRecorder(plan_, *tuple);
+    
     iterator_++;
     return true;
   }

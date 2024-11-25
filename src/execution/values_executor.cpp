@@ -5,9 +5,11 @@ namespace bustub {
 ValuesExecutor::ValuesExecutor(ExecutorContext *exec_ctx, const ValuesPlanNode *plan)
     : AbstractExecutor(exec_ctx), plan_(plan), dummy_schema_(Schema({})) {}
 
-void ValuesExecutor::Init() { cursor_ = 0; }
+void ValuesExecutor::Init(ProcessRecordContext *ptx) { 
+  cursor_ = 0; 
+}
 
-auto ValuesExecutor::Next(Tuple *tuple, RID *rid) -> bool {
+auto ValuesExecutor::Next(Tuple *tuple, RID *rid, ProcessRecordContext *ptx) -> bool {
   if (cursor_ >= plan_->GetValues().size()) {
     return false;
   }
@@ -21,6 +23,8 @@ auto ValuesExecutor::Next(Tuple *tuple, RID *rid) -> bool {
   }
 
   *tuple = Tuple{values, &GetOutputSchema()};
+  if (ptx) ptx->AddToExecRecorder(plan_, *tuple);
+
   cursor_ += 1;
 
   return true;

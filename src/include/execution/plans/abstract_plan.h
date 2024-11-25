@@ -78,8 +78,6 @@ const std::unordered_map<PlanType, std::string> kPlanNodeNameMap = {
 class AbstractPlanNode;
 using AbstractPlanNodeRef = std::shared_ptr<const AbstractPlanNode>;
 
-using plan_node_id_t = uint32_t;
-
 /**
  * AbstractPlanNode represents all the possible types of plan nodes in our system.
  * Plan nodes are modeled as trees, so each plan node can have a variable number of children.
@@ -134,8 +132,8 @@ class AbstractPlanNode {
 
   void ToJSON(rapidjson::Value &json_object, rapidjson_allocator_t &json_alloc) const {
 
-    json_object.AddMember("planner_node_tag", rapidjson::Value(GetNodeName().c_str(), json_alloc), json_alloc);
-    json_object.AddMember("planner_node_id", id_, json_alloc);
+    json_object.AddMember("planner_node_tag", rapidjson::Value(GetNodeName().c_str(),       json_alloc), json_alloc);
+    json_object.AddMember("planner_node_id",  rapidjson::Value(std::to_string(id_).c_str(), json_alloc), json_alloc);
 
     rapidjson::Value json_attr(rapidjson::kObjectType);
     PlanNodeToJSON(json_attr, json_alloc);

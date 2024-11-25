@@ -27,12 +27,14 @@ NestIndexJoinExecutor::NestIndexJoinExecutor(ExecutorContext *exec_ctx, const Ne
   table_info_ = exec_ctx->GetCatalog()->GetTable(plan_->GetInnerTableOid());
 }
 
-void NestIndexJoinExecutor::Init() { child_executor_->Init(); }
+void NestIndexJoinExecutor::Init(ProcessRecordContext *ptx) { 
+  child_executor_->Init(ptx); 
+}
 
-auto NestIndexJoinExecutor::Next(Tuple *tuple, RID *rid) -> bool {
+auto NestIndexJoinExecutor::Next(Tuple *tuple, RID *rid, ProcessRecordContext *ptx) -> bool {
   Tuple left_tuple;
   RID left_rid;
-  while (child_executor_->Next(&left_tuple, &left_rid)) {
+  while (child_executor_->Next(&left_tuple, &left_rid, ptx)) {
     auto key_schema = index_info_->index_->GetKeySchema();
     auto value = plan_->KeyPredicate()->Evaluate(&left_tuple, child_executor_->GetOutputSchema());
     std::vector<Value> values;
@@ -51,7 +53,10 @@ auto NestIndexJoinExecutor::Next(Tuple *tuple, RID *rid) -> bool {
           for (uint32_t i = 0; i < table_info_->schema_.GetColumnCount(); i++) {
             tuple_values.push_back(right_tuple.GetValue(&table_info_->schema_, i));
           }
+
           *tuple = {tuple_values, &plan_->OutputSchema()};
+          if (ptx) ptx->AddToExecRecorder(plan_, *tuple);
+
           return true;
         }
       }
@@ -64,7 +69,10 @@ auto NestIndexJoinExecutor::Next(Tuple *tuple, RID *rid) -> bool {
       for (uint32_t i = 0; i < table_info_->schema_.GetColumnCount(); i++) {
         tuple_values.push_back(ValueFactory::GetNullValueByType(table_info_->schema_.GetColumn(i).GetType()));
       }
+
       *tuple = {tuple_values, &plan_->OutputSchema()};
+      if (ptx) ptx->AddToExecRecorder(plan_, *tuple);
+      
       return true;
     }
   }

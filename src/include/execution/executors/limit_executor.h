@@ -35,7 +35,7 @@ class LimitExecutor : public AbstractExecutor {
                 std::unique_ptr<AbstractExecutor> &&child_executor);
 
   /** Initialize the limit */
-  void Init() override;
+  void Init(ProcessRecordContext *ptx) override;
 
   /**
    * Yield the next tuple from the limit.
@@ -43,7 +43,7 @@ class LimitExecutor : public AbstractExecutor {
    * @param[out] rid The next tuple RID produced by the limit
    * @return `true` if a tuple was produced, `false` if there are no more tuples
    */
-  auto Next(Tuple *tuple, RID *rid) -> bool override;
+  auto Next(Tuple *tuple, RID *rid, ProcessRecordContext *ptx) -> bool override;
 
   /** @return The output schema for the limit */
   auto GetOutputSchema() const -> const Schema & override { return plan_->OutputSchema(); };

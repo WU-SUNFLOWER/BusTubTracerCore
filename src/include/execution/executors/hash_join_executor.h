@@ -38,7 +38,7 @@ class HashJoinExecutor : public AbstractExecutor {
                    std::unique_ptr<AbstractExecutor> &&left_child, std::unique_ptr<AbstractExecutor> &&right_child);
 
   /** Initialize the join */
-  void Init() override;
+  void Init(ProcessRecordContext *ptx) override;
 
   /**
    * Yield the next tuple from the join.
@@ -46,7 +46,7 @@ class HashJoinExecutor : public AbstractExecutor {
    * @param[out] rid The next tuple RID, not used by hash join.
    * @return `true` if a tuple was produced, `false` if there are no more tuples.
    */
-  auto Next(Tuple *tuple, RID *rid) -> bool override;
+  auto Next(Tuple *tuple, RID *rid, ProcessRecordContext *ptx) -> bool override;
 
   /** @return The output schema for the join */
   auto GetOutputSchema() const -> const Schema & override { return plan_->OutputSchema(); };

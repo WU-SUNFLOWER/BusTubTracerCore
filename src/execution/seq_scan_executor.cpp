@@ -17,7 +17,7 @@ namespace bustub {
 SeqScanExecutor::SeqScanExecutor(ExecutorContext *exec_ctx, const SeqScanPlanNode *plan)
     : AbstractExecutor(exec_ctx), plan_(plan) {}
 
-void SeqScanExecutor::Init() {
+void SeqScanExecutor::Init(ProcessRecordContext *ptx) {
   auto table_info = exec_ctx_->GetCatalog()->GetTable(plan_->GetTableOid());
   table_heap_ = table_info->table_.get();
   iterator_ = std::make_unique<TableIterator>(table_heap_->Begin(exec_ctx_->GetTransaction()));
@@ -32,7 +32,7 @@ void SeqScanExecutor::Init() {
   }
 }
 
-auto SeqScanExecutor::Next(Tuple *tuple, RID *rid) -> bool {
+auto SeqScanExecutor::Next(Tuple *tuple, RID *rid, ProcessRecordContext *ptx) -> bool {
   try {
     if (!exec_ctx_->GetTransaction()->GetSharedRowLockSet()->empty()) {
       if (exec_ctx_->GetTransaction()->GetIsolationLevel() == IsolationLevel::READ_COMMITTED &&
@@ -55,7 +55,10 @@ auto SeqScanExecutor::Next(Tuple *tuple, RID *rid) -> bool {
     } catch (TransactionAbortException &e) {
       throw ExecutionException("seq scan TransactionAbort");
     }
+
     *tuple = *((*iterator_)++);
+    if (ptx) ptx->AddToExecRecorder(plan_, *tuple);
+    
     *rid = tuple->GetRid();
     return true;
   }

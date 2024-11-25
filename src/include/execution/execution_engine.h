@@ -22,6 +22,7 @@
 #include "execution/executor_factory.h"
 #include "execution/plans/abstract_plan.h"
 #include "storage/table/tuple.h"
+#include "myapi/process_record_context.h"
 
 namespace bustub {
 
@@ -51,7 +52,7 @@ class ExecutionEngine {
    */
   // NOLINTNEXTLINE
   auto Execute(const AbstractPlanNodeRef &plan, std::vector<Tuple> *result_set, Transaction *txn,
-               ExecutorContext *exec_ctx) -> bool {
+               ExecutorContext *exec_ctx, ProcessRecordContext *ptx) -> bool {
     BUSTUB_ASSERT((txn == exec_ctx->GetTransaction()), "Broken Invariant");
 
     // Construct the executor for the abstract plan node
@@ -61,8 +62,8 @@ class ExecutionEngine {
     auto executor_succeeded = true;
 
     try {
-      executor->Init();
-      PollExecutor(executor.get(), plan, result_set);
+      executor->Init(ptx);
+      PollExecutor(executor.get(), plan, result_set, ptx);
     } catch (const ExecutionException &ex) {
 #ifndef NDEBUG
       LOG_ERROR("Error Encountered in Executor Execution: %s", ex.what());
@@ -84,10 +85,10 @@ class ExecutionEngine {
    * @param result_set The tuple result set
    */
   static void PollExecutor(AbstractExecutor *executor, const AbstractPlanNodeRef &plan,
-                           std::vector<Tuple> *result_set) {
+                           std::vector<Tuple> *result_set, ProcessRecordContext *ptx) {
     RID rid{};
     Tuple tuple{};
-    while (executor->Next(&tuple, &rid)) {
+    while (executor->Next(&tuple, &rid, ptx)) {
       if (result_set != nullptr) {
         result_set->push_back(tuple);
       }

@@ -7,16 +7,16 @@ ProjectionExecutor::ProjectionExecutor(ExecutorContext *exec_ctx, const Projecti
                                        std::unique_ptr<AbstractExecutor> &&child_executor)
     : AbstractExecutor(exec_ctx), plan_(plan), child_executor_(std::move(child_executor)) {}
 
-void ProjectionExecutor::Init() {
+void ProjectionExecutor::Init(ProcessRecordContext *ptx) {
   // Initialize the child executor
-  child_executor_->Init();
+  child_executor_->Init(ptx);
 }
 
-auto ProjectionExecutor::Next(Tuple *tuple, RID *rid) -> bool {
+auto ProjectionExecutor::Next(Tuple *tuple, RID *rid, ProcessRecordContext *ptx) -> bool {
   Tuple child_tuple{};
 
   // Get the next tuple
-  const auto status = child_executor_->Next(&child_tuple, rid);
+  const auto status = child_executor_->Next(&child_tuple, rid, ptx);
 
   if (!status) {
     return false;
@@ -30,6 +30,8 @@ auto ProjectionExecutor::Next(Tuple *tuple, RID *rid) -> bool {
   }
 
   *tuple = Tuple{values, &GetOutputSchema()};
+  
+  if (ptx) ptx->AddToExecRecorder(plan_, *tuple);
 
   return true;
 }

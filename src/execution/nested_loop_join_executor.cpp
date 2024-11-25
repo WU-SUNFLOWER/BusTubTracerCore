@@ -33,29 +33,29 @@ NestedLoopJoinExecutor::NestedLoopJoinExecutor(ExecutorContext *exec_ctx, const 
   is_ineer_ = (plan_->GetJoinType() == JoinType::INNER);
 }
 
-void NestedLoopJoinExecutor::Init() {
+void NestedLoopJoinExecutor::Init(ProcessRecordContext *ptx) {
   Tuple tuple;
   RID rid;
-  left_executor_->Init();
-  right_executor_->Init();
-  while (right_executor_->Next(&tuple, &rid)) {
+  left_executor_->Init(ptx);
+  right_executor_->Init(ptx);
+  while (right_executor_->Next(&tuple, &rid, ptx)) {
     right_tuples_.push_back(tuple);
   }
 }
 
-auto NestedLoopJoinExecutor::Next(Tuple *tuple, RID *rid) -> bool {
+auto NestedLoopJoinExecutor::Next(Tuple *tuple, RID *rid, ProcessRecordContext *ptx) -> bool {
   std::vector<Column> columns(left_schema_.GetColumns());
   for (const auto &column : right_schema_.GetColumns()) {
     columns.push_back(column);
   }
   Schema schema(columns);
   if (is_ineer_) {
-    return InnerJoin(schema, tuple);
+    return InnerJoin(schema, tuple, ptx);
   }
-  return LeftJoin(schema, tuple);
+  return LeftJoin(schema, tuple, ptx);
 }
 
-auto NestedLoopJoinExecutor::InnerJoin(const Schema &schema, Tuple *tuple) -> bool {
+auto NestedLoopJoinExecutor::InnerJoin(const Schema &schema, Tuple *tuple, ProcessRecordContext *ptx) -> bool {
   if (index_ > right_tuples_.size()) {
     return false;
   }
@@ -70,13 +70,16 @@ auto NestedLoopJoinExecutor::InnerJoin(const Schema &schema, Tuple *tuple) -> bo
         for (uint32_t i = 0; i < right_schema_.GetColumnCount(); i++) {
           value.push_back(right_tuples_[j].GetValue(&right_schema_, i));
         }
+
         *tuple = {value, &schema};
+        if (ptx) ptx->AddToExecRecorder(plan_, *tuple);
+
         return true;
       }
     }
   }
   if (index_ == 0) {
-    while (left_executor_->Next(&left_tuple_, &left_rid_)) {
+    while (left_executor_->Next(&left_tuple_, &left_rid_, ptx)) {
       for (const auto &right_tuple : right_tuples_) {
         index_ = (index_ + 1) % right_tuples_.size();
         if (plan_->Predicate().EvaluateJoin(&left_tuple_, left_schema_, &right_tuple, right_schema_).GetAs<bool>()) {
@@ -87,7 +90,10 @@ auto NestedLoopJoinExecutor::InnerJoin(const Schema &schema, Tuple *tuple) -> bo
           for (uint32_t i = 0; i < right_schema_.GetColumnCount(); i++) {
             value.push_back(right_tuple.GetValue(&right_schema_, i));
           }
+
           *tuple = {value, &schema};
+          if (ptx) ptx->AddToExecRecorder(plan_, *tuple);
+          
           return true;
         }
       }
@@ -97,7 +103,7 @@ auto NestedLoopJoinExecutor::InnerJoin(const Schema &schema, Tuple *tuple) -> bo
   return false;
 }
 
-auto NestedLoopJoinExecutor::LeftJoin(const Schema &schema, Tuple *tuple) -> bool {
+auto NestedLoopJoinExecutor::LeftJoin(const Schema &schema, Tuple *tuple, ProcessRecordContext *ptx) -> bool {
   if (index_ > right_tuples_.size()) {
     return false;
   }
@@ -113,7 +119,10 @@ auto NestedLoopJoinExecutor::LeftJoin(const Schema &schema, Tuple *tuple) -> boo
           value.push_back(right_tuples_[j].GetValue(&right_schema_, i));
         }
         is_match_ = true;
+
         *tuple = {value, &schema};
+        if (ptx) ptx->AddToExecRecorder(plan_, *tuple);
+        
         return true;
       }
     }
@@ -127,11 +136,14 @@ auto NestedLoopJoinExecutor::LeftJoin(const Schema &schema, Tuple *tuple) -> boo
       for (uint32_t i = 0; i < right_schema_.GetColumnCount(); i++) {
         value.push_back(ValueFactory::GetNullValueByType(right_schema_.GetColumn(i).GetType()));
       }
+
       *tuple = {value, &schema};
+      if (ptx) ptx->AddToExecRecorder(plan_, *tuple);
+      
       is_match_ = true;
       return true;
     }
-    while (left_executor_->Next(&left_tuple_, &left_rid_)) {
+    while (left_executor_->Next(&left_tuple_, &left_rid_, ptx)) {
       is_match_ = false;
       for (const auto &right_tuple : right_tuples_) {
         index_ = (index_ + 1) % right_tuples_.size();
@@ -144,7 +156,10 @@ auto NestedLoopJoinExecutor::LeftJoin(const Schema &schema, Tuple *tuple) -> boo
             value.push_back(right_tuple.GetValue(&right_schema_, i));
           }
           is_match_ = true;
+
           *tuple = {value, &schema};
+          if (ptx) ptx->AddToExecRecorder(plan_, *tuple);
+          
           return true;
         }
       }
@@ -156,7 +171,10 @@ auto NestedLoopJoinExecutor::LeftJoin(const Schema &schema, Tuple *tuple) -> boo
         for (uint32_t i = 0; i < right_schema_.GetColumnCount(); i++) {
           value.push_back(ValueFactory::GetNullValueByType(right_schema_.GetColumn(i).GetType()));
         }
+
         *tuple = {value, &schema};
+        if (ptx) ptx->AddToExecRecorder(plan_, *tuple);
+        
         is_match_ = true;
         return true;
       }

@@ -24,11 +24,11 @@ AggregationExecutor::AggregationExecutor(ExecutorContext *exec_ctx, const Aggreg
       aht_(plan_->GetAggregates(), plan_->GetAggregateTypes()),
       aht_iterator_(aht_.Begin()) {}
 
-void AggregationExecutor::Init() {
-  child_->Init();
+void AggregationExecutor::Init(ProcessRecordContext *ptx) {
+  child_->Init(ptx);
   Tuple tuple;
   RID rid;
-  while (child_->Next(&tuple, &rid)) {
+  while (child_->Next(&tuple, &rid, ptx)) {
     auto aggregate_key = MakeAggregateKey(&tuple);
     auto aggregate_value = MakeAggregateValue(&tuple);
     aht_.InsertCombine(aggregate_key, aggregate_value);
@@ -36,14 +36,17 @@ void AggregationExecutor::Init() {
   aht_iterator_ = aht_.Begin();  // 插入后需要重新指定 aht_iterator_
 }
 
-auto AggregationExecutor::Next(Tuple *tuple, RID *rid) -> bool {
+auto AggregationExecutor::Next(Tuple *tuple, RID *rid, ProcessRecordContext *ptx) -> bool {
   Schema schema(plan_->OutputSchema());
   if (aht_iterator_ != aht_.End()) {
     std::vector<Value> value(aht_iterator_.Key().group_bys_);
     for (const auto &aggregate : aht_iterator_.Val().aggregates_) {
       value.push_back(aggregate);
     }
+
     *tuple = {value, &schema};
+    if (ptx) ptx->AddToExecRecorder(plan_, *tuple);
+
     ++aht_iterator_;
     successful_ = true;
     return true;
@@ -67,7 +70,10 @@ auto AggregationExecutor::Next(Tuple *tuple, RID *rid) -> bool {
             break;
         }
       }
+
       *tuple = {value, &schema};
+      if (ptx) ptx->AddToExecRecorder(plan_, *tuple);
+      
       successful_ = true;
       return true;
     }

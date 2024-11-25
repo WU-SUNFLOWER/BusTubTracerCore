@@ -39,7 +39,7 @@ class DeleteExecutor : public AbstractExecutor {
                  std::unique_ptr<AbstractExecutor> &&child_executor);
 
   /** Initialize the delete */
-  void Init() override;
+  void Init(ProcessRecordContext *ptx) override;
 
   /**
    * Yield the number of rows deleted from the table.
@@ -50,7 +50,7 @@ class DeleteExecutor : public AbstractExecutor {
    * NOTE: DeleteExecutor::Next() does not use the `rid` out-parameter.
    * NOTE: DeleteExecutor::Next() returns true with the number of deleted rows produced only once.
    */
-  auto Next([[maybe_unused]] Tuple *tuple, RID *rid) -> bool override;
+  auto Next([[maybe_unused]] Tuple *tuple, RID *rid, ProcessRecordContext *ptx) -> bool override;
 
   /** @return The output schema for the delete */
   auto GetOutputSchema() const -> const Schema & override { return plan_->OutputSchema(); };

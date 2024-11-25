@@ -27,8 +27,12 @@ HashJoinExecutor::HashJoinExecutor(ExecutorContext *exec_ctx, const HashJoinPlan
   }
 }
 
-void HashJoinExecutor::Init() { throw NotImplementedException("HashJoinExecutor is not implemented"); }
+void HashJoinExecutor::Init(ProcessRecordContext *ptx) { 
+  throw NotImplementedException("HashJoinExecutor is not implemented"); 
+}
 
-auto HashJoinExecutor::Next(Tuple *tuple, RID *rid) -> bool { return false; }
+auto HashJoinExecutor::Next(Tuple *tuple, RID *rid, ProcessRecordContext *ptx) -> bool { 
+  return false; 
+}
 
 }  // namespace bustub

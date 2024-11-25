@@ -40,7 +40,7 @@ class NestedLoopJoinExecutor : public AbstractExecutor {
                          std::unique_ptr<AbstractExecutor> &&right_executor);
 
   /** Initialize the join */
-  void Init() override;
+  void Init(ProcessRecordContext *ptx) override;
 
   /**
    * Yield the next tuple from the join.
@@ -48,14 +48,14 @@ class NestedLoopJoinExecutor : public AbstractExecutor {
    * @param[out] rid The next tuple RID produced, not used by nested loop join.
    * @return `true` if a tuple was produced, `false` if there are no more tuples.
    */
-  auto Next(Tuple *tuple, RID *rid) -> bool override;
+  auto Next(Tuple *tuple, RID *rid, ProcessRecordContext *ptx) -> bool override;
 
   /** @return The output schema for the insert */
   auto GetOutputSchema() const -> const Schema & override { return plan_->OutputSchema(); };
 
  private:
-  auto InnerJoin(const Schema &schema, Tuple *tuple) -> bool;
-  auto LeftJoin(const Schema &schema, Tuple *tuple) -> bool;
+  auto InnerJoin(const Schema &schema, Tuple *tuple, ProcessRecordContext *ptx) -> bool;
+  auto LeftJoin(const Schema &schema, Tuple *tuple, ProcessRecordContext *ptx) -> bool;
   /** The NestedLoopJoin plan node to be executed. */
   const NestedLoopJoinPlanNode *plan_;
   bool is_ineer_{false};

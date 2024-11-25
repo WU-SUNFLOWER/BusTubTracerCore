@@ -6,11 +6,11 @@ SortExecutor::SortExecutor(ExecutorContext *exec_ctx, const SortPlanNode *plan,
                            std::unique_ptr<AbstractExecutor> &&child_executor)
     : AbstractExecutor(exec_ctx), plan_(plan), child_executor_(std::move(child_executor)) {}
 
-void SortExecutor::Init() {
+void SortExecutor::Init(ProcessRecordContext *ptx) {
   Tuple tuple;
   RID rid;
-  child_executor_->Init();
-  while (child_executor_->Next(&tuple, &rid)) {
+  child_executor_->Init(ptx);
+  while (child_executor_->Next(&tuple, &rid, ptx)) {
     sorted_tuples_.push_back(tuple);
   }
   std::sort(sorted_tuples_.begin(), sorted_tuples_.end(), [this](const Tuple &a, const Tuple &b) {
@@ -30,9 +30,12 @@ void SortExecutor::Init() {
   iterator_ = sorted_tuples_.begin();
 }
 
-auto SortExecutor::Next(Tuple *tuple, RID *rid) -> bool {
+auto SortExecutor::Next(Tuple *tuple, RID *rid, ProcessRecordContext *ptx) -> bool {
   if (iterator_ != sorted_tuples_.end()) {
+
     *tuple = *iterator_;
+    if (ptx) ptx->AddToExecRecorder(plan_, *tuple);
+
     iterator_++;
     return true;
   }

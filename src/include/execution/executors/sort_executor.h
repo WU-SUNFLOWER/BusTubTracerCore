@@ -36,7 +36,7 @@ class SortExecutor : public AbstractExecutor {
   SortExecutor(ExecutorContext *exec_ctx, const SortPlanNode *plan, std::unique_ptr<AbstractExecutor> &&child_executor);
 
   /** Initialize the sort */
-  void Init() override;
+  void Init(ProcessRecordContext *ptx) override;
 
   /**
    * Yield the next tuple from the sort.
@@ -44,7 +44,7 @@ class SortExecutor : public AbstractExecutor {
    * @param[out] rid The next tuple RID produced by the sort
    * @return `true` if a tuple was produced, `false` if there are no more tuples
    */
-  auto Next(Tuple *tuple, RID *rid) -> bool override;
+  auto Next(Tuple *tuple, RID *rid, ProcessRecordContext *ptx) -> bool override;
 
   /** @return The output schema for the sort */
   auto GetOutputSchema() const -> const Schema & override { return plan_->OutputSchema(); }

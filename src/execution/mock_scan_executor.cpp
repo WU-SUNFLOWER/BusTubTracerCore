@@ -391,12 +391,12 @@ MockScanExecutor::MockScanExecutor(ExecutorContext *exec_ctx, const MockScanPlan
   }
 }
 
-void MockScanExecutor::Init() {
+void MockScanExecutor::Init(ProcessRecordContext *ptx) {
   // Reset the cursor
   cursor_ = 0;
 }
 
-auto MockScanExecutor::Next(Tuple *tuple, RID *rid) -> bool {
+auto MockScanExecutor::Next(Tuple *tuple, RID *rid, ProcessRecordContext *ptx) -> bool {
   if (cursor_ == size_) {
     // Scan complete
     return EXECUTOR_EXHAUSTED;
@@ -408,6 +408,9 @@ auto MockScanExecutor::Next(Tuple *tuple, RID *rid) -> bool {
   }
   ++cursor_;
   *rid = MakeDummyRID();
+
+  if (ptx) ptx->AddToExecRecorder(plan_, *tuple);
+
   return EXECUTOR_ACTIVE;
 }
 

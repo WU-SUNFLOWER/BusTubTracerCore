@@ -20,12 +20,12 @@ InsertExecutor::InsertExecutor(ExecutorContext *exec_ctx, const InsertPlanNode *
                                std::unique_ptr<AbstractExecutor> &&child_executor)
     : AbstractExecutor(exec_ctx), plan_(plan), child_executor_(std::move(child_executor)) {}
 
-void InsertExecutor::Init() {
+void InsertExecutor::Init(ProcessRecordContext *ptx) {
   table_info_ = exec_ctx_->GetCatalog()->GetTable(plan_->TableOid());
   table_name_ = table_info_->name_;
   table_heap_ = table_info_->table_.get();
   iterator_ = std::make_unique<TableIterator>(table_heap_->Begin(exec_ctx_->GetTransaction()));
-  child_executor_->Init();
+  child_executor_->Init(ptx);
   try {
     if (!exec_ctx_->GetLockManager()->LockTable(exec_ctx_->GetTransaction(), LockManager::LockMode::INTENTION_EXCLUSIVE,
                                                 table_info_->oid_)) {
@@ -36,12 +36,12 @@ void InsertExecutor::Init() {
   }
 }
 
-auto InsertExecutor::Next([[maybe_unused]] Tuple *tuple, RID *rid) -> bool {
+auto InsertExecutor::Next([[maybe_unused]] Tuple *tuple, RID *rid, ProcessRecordContext *ptx) -> bool {
   if (successful_) {
     return false;
   }
   int count = 0;
-  while (child_executor_->Next(tuple, rid)) {
+  while (child_executor_->Next(tuple, rid, ptx)) {
     if (table_heap_->InsertTuple(*tuple, rid, exec_ctx_->GetTransaction())) {
       try {
         if (!exec_ctx_->GetLockManager()->LockRow(exec_ctx_->GetTransaction(), LockManager::LockMode::EXCLUSIVE,
@@ -62,7 +62,10 @@ auto InsertExecutor::Next([[maybe_unused]] Tuple *tuple, RID *rid) -> bool {
   std::vector<Value> value;
   value.emplace_back(INTEGER, count);
   Schema schema(plan_->OutputSchema());
+
   *tuple = Tuple(value, &schema);
+  if (ptx) ptx->AddToExecRecorder(plan_, *tuple);
+  
   successful_ = true;
   return true;
 }

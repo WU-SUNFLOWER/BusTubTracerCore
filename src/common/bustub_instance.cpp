@@ -322,19 +322,21 @@ auto BustubInstance::ExecuteSqlTxn(
     // Plan the query.
     bustub::Planner planner(*catalog_);
     planner.PlanQuery(*statement);
-    if (ptx != nullptr) planner.plan_->ToJSON(ptx->planner_tree_record_, ptx->allocator_);
+    if (ptx != nullptr) planner.plan_->ToJSON(ptx->GetPlannerTreeRecord(), ptx->GetAllocator());
 
     // Optimize the query.
     bustub::Optimizer optimizer(*catalog_, IsForceStarterRule());
     auto optimized_plan = optimizer.Optimize(planner.plan_);
-    if (ptx != nullptr) optimized_plan->ToJSON(ptx->opt_planner_tree_record_, ptx->allocator_);
+    if (ptx != nullptr) optimized_plan->ToJSON(ptx->GetOptPlannerTreeRecord(), ptx->GetAllocator());
 
     l.unlock();
 
     // Execute the query.
     auto exec_ctx = MakeExecutorContext(txn);
     std::vector<Tuple> result_set{};
-    is_successful &= execution_engine_->Execute(optimized_plan, &result_set, txn, exec_ctx.get());
+
+    is_successful &= execution_engine_->Execute(optimized_plan, &result_set, txn, exec_ctx.get(), ptx);
+    if (ptx && is_successful) ptx->SaveExecutionRecord();
 
     // Return the result set as a vector of string.
     auto schema = planner.plan_->OutputSchema();

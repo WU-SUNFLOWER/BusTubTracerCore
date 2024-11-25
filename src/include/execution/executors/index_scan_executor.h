@@ -37,9 +37,9 @@ class IndexScanExecutor : public AbstractExecutor {
 
   auto GetOutputSchema() const -> const Schema & override { return plan_->OutputSchema(); }
 
-  void Init() override;
+  void Init(ProcessRecordContext *ptx) override;
 
-  auto Next(Tuple *tuple, RID *rid) -> bool override;
+  auto Next(Tuple *tuple, RID *rid, ProcessRecordContext *ptx) -> bool override;
 
  private:
   /** The index scan plan node to be executed. */

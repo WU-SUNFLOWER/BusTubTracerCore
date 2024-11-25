@@ -43,9 +43,9 @@ class NestIndexJoinExecutor : public AbstractExecutor {
 
   auto GetOutputSchema() const -> const Schema & override { return plan_->OutputSchema(); }
 
-  void Init() override;
+  void Init(ProcessRecordContext *ptx) override;
 
-  auto Next(Tuple *tuple, RID *rid) -> bool override;
+  auto Next(Tuple *tuple, RID *rid, ProcessRecordContext *ptx) -> bool override;
 
  private:
   /** The nested index join plan node. */
