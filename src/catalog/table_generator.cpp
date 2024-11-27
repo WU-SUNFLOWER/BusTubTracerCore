@@ -91,6 +91,8 @@ void TableGenerator::GenerateTestTables() {
    * you add a new table, set it up here.
    */
   std::vector<TableInsertMeta> insert_meta{
+
+/*
       // The empty table
       {"empty_table", 0, {{"colA", TypeId::INTEGER, false, Dist::Serial, 0, 0}}},
 
@@ -100,8 +102,11 @@ void TableGenerator::GenerateTestTables() {
        10,
        {{"col1", TypeId::INTEGER, false, Dist::Serial, 0, 10}, {"col2", TypeId::INTEGER, false, Dist::Serial, 10, 20}}},
 
+*/
+
+
       // Table 1
-      {"test_1",
+      {"test_table_1",
        TEST1_SIZE,
        {{"colA", TypeId::INTEGER, false, Dist::Serial, 0, 0},
         {"colB", TypeId::INTEGER, false, Dist::Uniform, 0, 9},
@@ -109,14 +114,14 @@ void TableGenerator::GenerateTestTables() {
         {"colD", TypeId::INTEGER, false, Dist::Uniform, 0, 99999}}},
 
       // Table 2
-      {"test_2",
+      {"test_table_2",
        TEST2_SIZE,
        {{"colA", TypeId::INTEGER, false, Dist::Serial, 0, 99},
         {"colB", TypeId::INTEGER, true, Dist::Uniform, 0, 999},
         {"colC", TypeId::INTEGER, true, Dist::Cyclic, 0, 9}}},
 
       // Table 3
-      {"test_3",
+      {"test_table_3",
        TEST3_SIZE,
        {{"col1", TypeId::SMALLINT, false, Dist::Serial, 0, 0},
         {"col2", TypeId::INTEGER, true, Dist::Uniform, 0, 9},
@@ -158,6 +163,7 @@ void TableGenerator::GenerateTestTables() {
       
       */
 
+/*
       // Empty table with two columns
       {"empty_table2",
        0,
@@ -168,6 +174,9 @@ void TableGenerator::GenerateTestTables() {
       {"empty_table3",
        0,
        {{"colA", TypeId::BIGINT, false, Dist::Serial, 0, 0}, {"colB", TypeId::INTEGER, false, Dist::Uniform, 0, 9}}},
+
+*/
+
   };
 
   for (auto &table_meta : insert_meta) {

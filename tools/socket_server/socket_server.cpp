@@ -153,10 +153,12 @@ int main() {
                 // don't forget to set flag finally
                 has_received_header = true;
 
+                /*
                 std::cout << "receive new datagram header:" 
                     << " options=" << std::to_string(options)
                     << " payload_length=" << total_payload_length
-                    << std::endl;
+                    << std::endl;                
+                */
 
             } else {
                 // just store the data to payload buffer
@@ -170,7 +172,7 @@ int main() {
 
             // all the bytes of payload have been read to payload buffer!
             if (payload_buffer.length() == total_payload_length) {
-                std::cout << "receive from client: " << payload_buffer << std::endl;
+                //std::cout << "receive from client: " << payload_buffer << std::endl;
 
                 ApiManager api_manager(kBustubInstance.get());
                 std::string respond = std::move(api_manager.DispatchRequest(payload_buffer));
