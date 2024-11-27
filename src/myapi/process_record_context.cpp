@@ -23,18 +23,18 @@ void ProcessRecordContext::SaveExecutionRecord() {
         // Save the column names.
         rapidjson::Value table_column_names_json(rapidjson::kArrayType);
         for (uint32_t i = 0; i < schema->GetColumnCount(); ++i) {
-        auto column = schema->GetColumn(i);
-        table_column_names_json.PushBack(rapidjson::Value(column.GetName().c_str(), allocator_), allocator_);
+            auto column = schema->GetColumn(i);
+            table_column_names_json.PushBack(rapidjson::Value(column.GetName().c_str(), allocator_), allocator_);
         }
         output_table_json.PushBack(table_column_names_json, allocator_);
         // Save the real tuples.
         for (const auto &tuple : tuples) {
-        rapidjson::Value output_tuple_json(rapidjson::kArrayType);
-        for (uint32_t i = 0; i < schema->GetColumnCount(); ++i) {
-            bustub::Value value = tuple.GetValue(schema, i);
-            output_tuple_json.PushBack(rapidjson::Value(value.ToString().c_str(), allocator_), allocator_);
-        }
-        output_table_json.PushBack(output_tuple_json, allocator_);
+            rapidjson::Value output_tuple_json(rapidjson::kArrayType);
+            for (uint32_t i = 0; i < schema->GetColumnCount(); ++i) {
+                bustub::Value value = tuple.GetValue(schema, i);
+                output_tuple_json.PushBack(rapidjson::Value(value.ToString().c_str(), allocator_), allocator_);
+            }
+            output_table_json.PushBack(output_tuple_json, allocator_);
         }
 
         rapidjson::Value json_node_record(rapidjson::kObjectType);
