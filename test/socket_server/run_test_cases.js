@@ -1,11 +1,11 @@
 import BusTubCore from './bustub_core.js';
-import {assert, sendJsonMessage, executeSQL} from './util.js';
 import test_case_1 from './test_cases/test_case_1.js';
 import test_case_2 from './test_cases/test_case_2.js';
 import test_case_3 from './test_cases/test_case_3.js';
 import test_case_4 from './test_cases/test_case_4.js';
+import test_case_5 from './test_cases/test_case_5.js';
 
-const testCases = [test_case_1, test_case_2, test_case_3, test_case_4];
+const testCases = [test_case_1, test_case_2, test_case_3, test_case_4, test_case_5];
 
 const runTestCases = async () => {
     await BusTubCore.init();
