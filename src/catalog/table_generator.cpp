@@ -116,17 +116,17 @@ void TableGenerator::GenerateTestTables() {
       // Table 2
       {"test_table_2",
        TEST2_SIZE,
-       {{"colA", TypeId::INTEGER, false, Dist::Serial, 0, 99},
+       {{"colA", TypeId::INTEGER, false, Dist::Serial, 0, 0},
         {"colB", TypeId::INTEGER, true, Dist::Uniform, 0, 999},
         {"colC", TypeId::INTEGER, true, Dist::Cyclic, 0, 9}}},
 
       // Table 3
       {"test_table_3",
        TEST3_SIZE,
-       {{"col1", TypeId::SMALLINT, false, Dist::Serial, 0, 0},
-        {"col2", TypeId::INTEGER, true, Dist::Uniform, 0, 9},
-        {"col3", TypeId::BIGINT, false, Dist::Uniform, 0, 1024},
-        {"col4", TypeId::INTEGER, true, Dist::Uniform, 0, 2048}}},
+       {{"colA", TypeId::INTEGER, false, Dist::Serial, 0, 0},
+        {"colB", TypeId::INTEGER, true, Dist::Uniform, 0, 10000},
+        {"colC", TypeId::INTEGER, false, Dist::Uniform, 0, 10000},
+        {"colD", TypeId::INTEGER, true, Dist::Uniform, 0, 10000}}},
 
       /*
       // Table 4

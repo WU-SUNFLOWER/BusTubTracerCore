@@ -119,6 +119,10 @@ auto Binder::BindIndex(duckdb_libpgquery::PGIndexStmt *stmt) -> std::unique_ptr<
   std::vector<std::unique_ptr<BoundColumnRef>> cols;
   auto table = BindBaseTableRef(stmt->relation->relname, std::nullopt);
 
+  if (stmt->idxname == nullptr) {
+    throw bustub::Exception("index name is missing");
+  }
+
   for (auto cell = stmt->indexParams->head; cell != nullptr; cell = cell->next) {
     auto index_element = reinterpret_cast<duckdb_libpgquery::PGIndexElem *>(cell->data.ptr_value);
     if (index_element->name != nullptr) {

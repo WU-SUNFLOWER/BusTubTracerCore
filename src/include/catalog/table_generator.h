@@ -9,9 +9,9 @@
 
 namespace bustub {
 
-static constexpr uint32_t TEST1_SIZE = 100;
-static constexpr uint32_t TEST2_SIZE = 1000;
-static constexpr uint32_t TEST3_SIZE = 5000;
+static constexpr uint32_t TEST1_SIZE = 40;
+static constexpr uint32_t TEST2_SIZE = 80;
+static constexpr uint32_t TEST3_SIZE = 400;
 /*
 static constexpr uint32_t TEST4_SIZE = 100000;
 static constexpr uint32_t TEST5_SIZE = 10000;

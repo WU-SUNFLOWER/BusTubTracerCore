@@ -1,3 +1,5 @@
+#include <queue>
+
 #include "fmt/format.h"
 #include "fmt/ranges.h"
 
@@ -18,6 +20,7 @@ ApiManager::ApiManager(bustub::BustubInstance *bustub_instance)
         {"/get_table_heap_info",    BIND_API(ApiManager::GetTableHeapInfo)  },
         {"/get_table_page_info",    BIND_API(ApiManager::GetTablePageInfo)  },
         {"/get_tuple_info",         BIND_API(ApiManager::GetTupleInfo)      },
+        {"/query_b_plus_tree",      BIND_API(ApiManager::QueryBPlusTree)    },
     };
 
 #undef BIND_API
@@ -432,6 +435,124 @@ bool ApiManager::GetTupleInfo(ApiContext &ctx) {
 
     return true;
 
+}
+
+bool ApiManager::QueryBPlusTree(ApiContext &ctx){
+
+    using LeafPage = bustub::BPlusTreeLeafPage<bustub::IntegerKeyType,bustub::IntegerValueType,bustub::IntegerComparatorType>;
+    using InternalPage = bustub::BPlusTreeInternalPage<bustub::IntegerKeyType,bustub::page_id_t,bustub::IntegerComparatorType>;
+    using BPlusTreeIndex = bustub::BPlusTreeIndex<bustub::IntegerKeyType, bustub::IntegerValueType, bustub::IntegerComparatorType>;
+
+     if (!ctx.req_data.HasMember("index_oid") || !ctx.req_data["index_oid"].IsNumber()) {
+        ctx.err_msg = "Missing or invalid 'index_oid' field";
+        return false;
+    }
+
+    bustub::index_oid_t index_oid = ctx.req_data["index_oid"].GetInt();
+    auto index_info = kBustubInstance_->catalog_->GetIndex(index_oid);
+
+    if (index_info == bustub::Catalog::NULL_INDEX_INFO) {
+        ctx.err_msg = "Can't find this index";
+        return false;
+    }
+    
+    auto index = dynamic_cast<BPlusTreeIndex*>(index_info->index_.get());
+    if (index == nullptr) {
+        ctx.err_msg = "Fail to fetch this b plus tree index.";
+        return false;
+    }
+    if (index -> GetBPlusTree().IsEmpty() == true) {
+        ctx.err_msg = "BPlusTree of the index is empty";
+        return false;
+    }
+
+    rapidjson::Value resp_root(rapidjson::kObjectType);
+    rapidjson::Value resp_nodes(rapidjson::kArrayType);
+    
+    std::queue<bustub::page_id_t> page_id_queue;
+    bustub::page_id_t root_page_id = index -> GetBPlusTree().GetRootPageId();
+    page_id_queue.push(root_page_id); 
+    
+    while(!page_id_queue.empty()){
+        rapidjson::Value resp_header(rapidjson::kObjectType);
+        rapidjson::Value resp_key_value_list(rapidjson::kArrayType);
+        auto cur_page_id = page_id_queue.front();
+        auto cur_page = reinterpret_cast<bustub::BPlusTreePage*>(
+            kBustubInstance_->buffer_pool_manager_->FetchPage(cur_page_id)->GetData()
+        );
+        page_id_queue.pop();
+        resp_header.AddMember("current_size", cur_page->GetSize(), ctx.resp_allocator);
+        resp_header.AddMember("max_size", cur_page->GetMaxSize(), ctx.resp_allocator);
+        resp_header.AddMember("page_id", cur_page->GetPageId(), ctx.resp_allocator);
+        
+        if (cur_page -> IsLeafPage()) {
+            // At first, check the information of header.
+            resp_header.AddMember("parent_page_id", cur_page->GetParentPageId(), ctx.resp_allocator);
+            resp_header.AddMember("page_type",rapidjson::Value().SetString("leaf_page", ctx.resp_allocator), ctx.resp_allocator);
+            
+            // Then, let's check the children of this node, in order to compute the `key_value` field.
+            auto curr_page = reinterpret_cast<LeafPage*>(cur_page);
+            resp_header.AddMember("next_page_id", curr_page->GetNextPageId(), ctx.resp_allocator);
+            for (int i = 0; i < curr_page->GetSize(); i ++) {
+                rapidjson::Value resp_kv(rapidjson::kObjectType);
+                rapidjson::Value resp_rid(rapidjson::kObjectType);
+                resp_kv.AddMember( "index",     curr_page->KeyAt(i).ToInt32(),     ctx.resp_allocator);
+                // Check the information of rid.
+                resp_rid.AddMember("page_id",   curr_page->ValueAt(i).GetPageId(),  ctx.resp_allocator);
+                resp_rid.AddMember("slot_num",  curr_page->ValueAt(i).GetSlotNum(), ctx.resp_allocator);
+                resp_kv.AddMember( "rid",       resp_rid,                           ctx.resp_allocator);
+                // Update the key_value list.
+                resp_key_value_list.PushBack(resp_kv, ctx.resp_allocator);
+            }
+
+            // Finally, let's record the `header` and `key_value` field.
+            // And add the information of this node to `resp_root` or `resp_node`.
+            if (cur_page->IsRootPage()) {
+                resp_root.AddMember("header", resp_header, ctx.resp_allocator);
+                resp_root.AddMember("key_value", resp_key_value_list, ctx.resp_allocator);
+            } else {
+                rapidjson::Value resp_node(rapidjson::kObjectType); 
+                resp_node.AddMember("header", resp_header, ctx.resp_allocator);
+                resp_node.AddMember("key_value", resp_key_value_list, ctx.resp_allocator);
+                resp_nodes.PushBack(resp_node, ctx.resp_allocator);
+            }
+            
+        }
+        else {
+            // At first, check the information of header.
+            resp_header.AddMember("parent_page_id", cur_page->GetParentPageId(), ctx.resp_allocator);
+            resp_header.AddMember("page_type",rapidjson::Value().SetString("internal_page", ctx.resp_allocator), ctx.resp_allocator);
+            
+            // Then, let's check the children of this node, in order to compute the `key_value` field.
+            auto curr_page = reinterpret_cast<InternalPage*>(cur_page);
+            for(int i = 0; i < curr_page->GetSize(); i ++){
+                rapidjson::Value resp_kv(rapidjson::kObjectType);
+                resp_kv.AddMember("index", curr_page->KeyAt(i).ToInt32(), ctx.resp_allocator);
+                resp_kv.AddMember("page_id", curr_page->ValueAt(i), ctx.resp_allocator);
+                // Update the key_value list.
+                resp_key_value_list.PushBack(resp_kv, ctx.resp_allocator);
+                // As an internal node, don't forget to update `page_id_queue`.
+                page_id_queue.push(curr_page->ValueAt(i));
+            }
+
+            // Finally, let's record the `header` and `key_value` field.
+            // And add the information of this node to `resp_root` or `resp_node`.
+            if (cur_page->IsRootPage()) {
+                resp_root.AddMember("header", resp_header, ctx.resp_allocator);
+                resp_root.AddMember("key_value", resp_key_value_list, ctx.resp_allocator);
+            } else {
+                rapidjson::Value resp_node(rapidjson::kObjectType); 
+                resp_node.AddMember("header", resp_header, ctx.resp_allocator);
+                resp_node.AddMember("key_value", resp_key_value_list, ctx.resp_allocator);
+                resp_nodes.PushBack(resp_node, ctx.resp_allocator);
+            }
+        }
+    }
+
+    ctx.resp_data.AddMember("root", resp_root, ctx.resp_allocator);
+    ctx.resp_data.AddMember("nodes", resp_nodes, ctx.resp_allocator);
+
+    return true;
 }
 
 auto ApiManager::DispatchRequest(const std::string &request) -> std::string {

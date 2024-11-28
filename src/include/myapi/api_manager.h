@@ -47,6 +47,8 @@ public:
 
     bool GetTupleInfo(ApiContext &);
 
+    bool QueryBPlusTree(ApiContext &);
+
     auto DispatchRequest(const std::string &request) -> std::string;
 
 };

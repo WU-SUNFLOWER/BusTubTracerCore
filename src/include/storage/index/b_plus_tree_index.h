@@ -41,6 +41,8 @@ class BPlusTreeIndex : public Index {
 
   auto GetEndIterator() -> INDEXITERATOR_TYPE;
 
+  auto GetBPlusTree() -> BPlusTree<KeyType, ValueType, KeyComparator> &;
+
  protected:
   // comparator for key
   KeyComparator comparator_;

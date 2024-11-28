@@ -245,3 +245,5 @@ docs/dev
 
 # Submission zip files
 *.zip
+test/socket_server/test.db
+test/socket_server/test.log
