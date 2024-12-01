@@ -173,7 +173,7 @@ auto BPLUSTREE_TYPE::Insert(const KeyType &key, const ValueType &value, Transact
       auto leaf_node = reinterpret_cast<LeafPage *>(page->GetData());
       leaf_node->Init(page_id, INVALID_PAGE_ID, leaf_max_size_);
       root_page_id_ = page_id;
-      UpdateRootPageId(true);
+      //UpdateRootPageId(true);
       buffer_pool_manager_->UnpinPage(page_id, true);
     }
     latch_.unlock();
@@ -221,7 +221,7 @@ auto BPLUSTREE_TYPE::InsertInParentRW(Page *page_leaf, const KeyType &key, Page 
     auto page_bother_node = reinterpret_cast<BPlusTreePage *>(page_bother->GetData());
     page_bother_node->SetParentPageId(new_page_id);
     root_page_id_ = new_page_id;
-    UpdateRootPageId(false);
+    //UpdateRootPageId(false);
     transaction->GetPageSet()->pop_back();
     page_leaf->WUnlatch();
     buffer_pool_manager_->UnpinPage(page_leaf->GetPageId(), true);
@@ -329,7 +329,7 @@ void BPLUSTREE_TYPE::AdjustRootPageRW(Page *page, Transaction *transaction) {
     auto inter_node = reinterpret_cast<InternalPage *>(b_node);
     root_page_id_ = inter_node->ValueAt(0);
   }
-  UpdateRootPageId(false);
+  //UpdateRootPageId(false);
   transaction->AddIntoDeletedPageSet(page->GetPageId());
 }
 

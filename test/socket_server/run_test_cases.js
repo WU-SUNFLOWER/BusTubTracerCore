@@ -4,8 +4,9 @@ import test_case_2 from './test_cases/test_case_2.js';
 import test_case_3 from './test_cases/test_case_3.js';
 import test_case_4 from './test_cases/test_case_4.js';
 import test_case_5 from './test_cases/test_case_5.js';
+import test_case_6 from './test_cases/test_case_6.js';
 
-const testCases = [test_case_1, test_case_2, test_case_3, test_case_4, test_case_5];
+const testCases = [test_case_1, test_case_2, test_case_3, test_case_4, test_case_5, test_case_6];
 
 const runTestCases = async () => {
     await BusTubCore.init();

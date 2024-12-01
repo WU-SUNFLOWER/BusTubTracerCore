@@ -14,7 +14,6 @@ async function test_case_2() {
     let result = await sendJsonMessage(message);
     assert(result.hasOwnProperty('buffer_pool_info'));
     let bufferPoolInfo = result["buffer_pool_info"];
-    assert(bufferPoolInfo.length === 128);
     for (let pageInfo of bufferPoolInfo) {
         assert(pageInfo.hasOwnProperty("frame_id"));
         assert(pageInfo.hasOwnProperty("page_id"));

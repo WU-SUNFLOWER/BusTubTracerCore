@@ -21,6 +21,9 @@ namespace bustub {
 TableIterator::TableIterator(TableHeap *table_heap, RID rid, Transaction *txn)
     : table_heap_(table_heap), tuple_(new Tuple(rid)), txn_(txn) {
   if (rid.GetPageId() != INVALID_PAGE_ID) {
+    BufferPoolManager *buffer_pool_manager = table_heap_->buffer_pool_manager_;
+    auto cur_page = static_cast<TablePage *>(buffer_pool_manager->FetchPage(rid.GetPageId()));
+    BUSTUB_ENSURE(cur_page->GetTablePageId() == rid.GetPageId(), "FUCK");
     if (!table_heap_->GetTuple(tuple_->rid_, tuple_, txn_)) {
       throw bustub::Exception("read non-existing tuple");
     }
@@ -44,6 +47,9 @@ auto TableIterator::operator++() -> TableIterator & {
 
   cur_page->RLatch();
   RID next_tuple_rid;
+
+  BUSTUB_ENSURE(cur_page->GetTablePageId() == tuple_->rid_.GetPageId(), "FUCK");
+
   if (!cur_page->GetNextTupleRid(tuple_->rid_,
                                  &next_tuple_rid)) {  // end of this page
     while (cur_page->GetNextPageId() != INVALID_PAGE_ID) {
