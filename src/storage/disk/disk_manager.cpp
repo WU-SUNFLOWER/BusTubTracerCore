@@ -31,36 +31,39 @@ static char *buffer_used;
  * @input db_file: database file name
  */
 DiskManager::DiskManager(const std::string &db_file) : file_name_(db_file) {
-  std::string::size_type n = file_name_.rfind('.');
-  if (n == std::string::npos) {
-    LOG_DEBUG("wrong file format");
-    return;
-  }
-  log_name_ = file_name_.substr(0, n) + ".log";
+    std::string::size_type n = file_name_.rfind('.');
+    if (n == std::string::npos) {
+      LOG_DEBUG("wrong file format");
+      return;
+    }
+    log_name_ = file_name_.substr(0, n) + ".log";
 
-  log_io_.open(log_name_, std::ios::binary | std::ios::in | std::ios::app | std::ios::out);
-  // directory or file does not exist
-  if (!log_io_.is_open()) {
-    log_io_.clear();
-    // create a new file
-    log_io_.open(log_name_, std::ios::binary | std::ios::trunc | std::ios::out | std::ios::in);
+    log_io_.open(log_name_, std::ios::binary | std::ios::in | std::ios::app | std::ios::out);
+    // directory or file does not exist
     if (!log_io_.is_open()) {
-      throw Exception("can't open dblog file");
+        log_io_.clear();
+        // create a new file
+        try {
+            log_io_.open(log_name_, std::ios::binary | std::ios::trunc | std::ios::out | std::ios::in);
+        } catch (const std::ios_base::failure &e) {
+            throw Exception(std::string("can't open dblog file: ") + e.what());
+        }
     }
-  }
 
-  std::scoped_lock scoped_db_io_latch(db_io_latch_);
-  db_io_.open(db_file, std::ios::binary | std::ios::in | std::ios::out);
-  // directory or file does not exist
-  if (!db_io_.is_open()) {
-    db_io_.clear();
-    // create a new file
-    db_io_.open(db_file, std::ios::binary | std::ios::trunc | std::ios::out | std::ios::in);
+    std::scoped_lock scoped_db_io_latch(db_io_latch_);
+    db_io_.open(db_file, std::ios::binary | std::ios::in | std::ios::out);
+    // directory or file does not exist
     if (!db_io_.is_open()) {
-      throw Exception("can't open db file");
+        db_io_.clear();
+        // create a new file
+        try {
+            db_io_.open(db_file, std::ios::binary | std::ios::trunc | std::ios::out | std::ios::in);
+        } catch (const std::ios_base::failure &e) {
+            throw Exception(std::string("can't open db file: ") + e.what());
+        }
     }
-  }
-  buffer_used = nullptr;
+
+    buffer_used = nullptr;
 }
 
 /**

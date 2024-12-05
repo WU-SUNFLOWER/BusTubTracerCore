@@ -28,7 +28,7 @@ static std::unique_ptr<bustub::BustubInstance> kBustubInstance = nullptr;
 
 void BustubInit() {
     std::cout << "Initialize BusTub..." << std::endl;
-    auto bustub = std::make_unique<bustub::BustubInstance>("test.db");
+    auto bustub = std::make_unique<bustub::BustubInstance>("/tmp/bustub.db");
     bustub->GenerateTestTable();
 
     kBustubInstance = std::move(bustub);
