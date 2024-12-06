@@ -21,6 +21,8 @@ BusTubTracer在架构上由两部分组成，分别为前端用户界面`BusTubT
 
 前端用户界面`BusTubTracerFront`的源码仓库请移步：https://github.com/WU-SUNFLOWER/BusTubTracerFront
 
+开发文档仓库请移步：https://github.com/WU-SUNFLOWER/BusTubTracerDocs
+
 # 开发环境
 
 - 操作系统：Ubuntu 22.04
