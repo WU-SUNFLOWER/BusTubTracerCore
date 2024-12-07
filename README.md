@@ -61,7 +61,7 @@ make socket_server -j`nproc`
 
 注意，在默认情况下这将构建Debug版本的后端核心二进制文件。如想得到更加优化的Release版本的二进制文件，请将其中的`cmake ..`命令替换为：
 ```shell
-cmake -DCMAKE_BUILD_TYPE=Release
+cmake -DCMAKE_BUILD_TYPE=Release ..
 ```
 
 当构建结束后，在目录`build/bin`中新生成的`socket_server`即为后端核心的二进制文件。
