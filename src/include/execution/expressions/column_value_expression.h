@@ -49,7 +49,9 @@ class ColumnValueExpression : public AbstractExpression {
   auto GetColIdx() const -> uint32_t { return col_idx_; }
 
   /** @return the string representation of the plan node and its children */
-  auto ToString() const -> std::string override { return fmt::format("#{}.{}", tuple_idx_, col_idx_); }
+  auto ToString() const -> std::string override { 
+    return fmt::format("#InputTuple{}[{}]", tuple_idx_, col_idx_); 
+  }
 
   BUSTUB_EXPR_CLONE_WITH_CHILDREN(ColumnValueExpression);
 
