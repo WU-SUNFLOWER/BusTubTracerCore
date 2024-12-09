@@ -25,7 +25,8 @@ void SortExecutor::Init(ProcessRecordContext *ptx) {
         return !default_order_by;
       }
     }
-    return true;
+    // Reference: https://blog.csdn.net/code_debugger/article/details/43833231
+    return false;
   });
   iterator_ = sorted_tuples_.begin();
 }
