@@ -479,6 +479,9 @@ auto Binder::BindColumnRef(duckdb_libpgquery::PGColumnRef *node) -> std::unique_
       for (auto node = fields->head; node != nullptr; node = node->next) {
         column_names.emplace_back(reinterpret_cast<duckdb_libpgquery::PGValue *>(node->data.ptr_value)->val.str);
       }
+      if (scope_ == nullptr) {
+        throw bustub::Exception("invalid scope");
+      }
       return ResolveColumn(*scope_, column_names);
     }
     case duckdb_libpgquery::T_PGAStar: {
@@ -695,7 +698,9 @@ auto Binder::ResolveColumnInternal(const BoundTableRef &table_ref, const std::ve
 
 auto Binder::ResolveColumn(const BoundTableRef &scope, const std::vector<std::string> &col_name)
     -> std::unique_ptr<BoundExpression> {
-  BUSTUB_ASSERT(!scope.IsInvalid(), "invalid scope");
+  if (scope.IsInvalid()) {
+    throw bustub::Exception("invalid scope");
+  }
   auto expr = ResolveColumnInternal(scope, col_name);
   if (!expr) {
     throw bustub::Exception(fmt::format("column {} not found", fmt::join(col_name, ".")));
