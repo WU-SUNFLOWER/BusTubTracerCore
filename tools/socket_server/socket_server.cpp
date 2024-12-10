@@ -54,6 +54,14 @@ auto PackDatagram(const std::string &payload) -> std::vector<uint8_t> {
     return datagram;
 }
 
+void exitServer(int server_fd) {
+    close(server_fd);
+    std::cout << "`server_fd` is closed" << std::endl;
+    unlink(SOCKET_PATH);
+    std::cout << "`SOCKET_PATH` is unlinked" << std::endl;
+    exit(0);
+}
+
 int main() {
 
     pid_t parent_pid = getppid();
@@ -92,10 +100,10 @@ int main() {
     // now let's notify the parent process!
     kill(parent_pid, SIGUSR1);
 
-    while (true) {
+    {
         if ((client_fd = accept(server_fd, nullptr, nullptr)) == -1) {
             std::cerr << "can't accept client" << std::endl;
-            continue;
+            exitServer(server_fd);
         }
         std::cout << "accept client fd: " << client_fd << std::endl;
 
@@ -194,8 +202,7 @@ int main() {
 
     }
 
-    close(server_fd);
-    unlink(SOCKET_PATH);
+    exitServer(server_fd);
 
     return 0;
 
